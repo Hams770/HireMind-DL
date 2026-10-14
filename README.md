@@ -67,7 +67,7 @@ Training will use Google Colab with PyTorch and Hugging Face Transformers; exact
 |---|---|
 | Five-paper review and research question | ✅ Done |
 | Dataset structure audit | ✅ Done (see `results/dataset_audit.json`) |
-| Proposal draft (M0/M1/M2, H1/H2) | ✅ Draft — being revised by the team |
+| Proposal draft (M0/M1/M2, H1/H2) | ✅ Draft in Overleaf — being revised by the team |
 | Dataset provenance, permission and label origin | ⏳ Pending |
 | Colab pilot | ⏳ Not started |
 | Teacher, M0, M1, M2 training and evaluation | ⏳ Not started |
@@ -77,5 +77,5 @@ No model results are reported yet. Results will be added only after real experim
 
 ## Links
 
-- Overleaf project: _add link_
+- Overleaf project (proposal, view-only): https://www.overleaf.com/project/6acffdc25099ba40f22e8c46/share#865f4fc4739de1c88a160527c2ef36eae1981d1718b814aa
 - Portfolio website: _add link_
