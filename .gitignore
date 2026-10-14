@@ -1,0 +1,17 @@
+# Raw dataset files (not redistributed)
+data/raw/
+*.csv
+
+# Model weights and caches
+*.pt
+*.bin
+*.safetensors
+*.onnx
+checkpoints/
+logits_cache/
+
+# Python / notebooks
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+.DS_Store

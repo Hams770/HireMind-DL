@@ -1,0 +1,30 @@
+{
+  "rows": 8000,
+  "split_rows": {
+    "train": 6241,
+    "test": 1759
+  },
+  "classes": {
+    "No Fit": 4000,
+    "Potential Fit": 2000,
+    "Good Fit": 2000
+  },
+  "unique_resumes": 643,
+  "unique_jobs": 351,
+  "unique_pairs": 7993,
+  "duplicate_pair_excess": 7,
+  "conflicting_pairs": 6,
+  "conflicting_rows": 12,
+  "clean_unique_pairs_before_normalization": 7987,
+  "empty_or_whitespace": 0,
+  "normalized_unique_pairs": 7993,
+  "normalized_conflicting_pairs": 6,
+  "sha256": {
+    "train": "b86fa488a21258015de1750633a9ac410f701ff96bf533f68978dbe3adec6d40",
+    "test": "f3c48f4cc3559bf192ebb9c241a30c601b5b8b3eee6f1656dd4d26dfd4b0887a"
+  },
+  "resume_overlap": 476,
+  "normalized_resume_overlap": 476,
+  "job_overlap": 0,
+  "normalized_job_overlap": 0
+}
