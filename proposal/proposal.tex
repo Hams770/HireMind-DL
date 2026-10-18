@@ -7,66 +7,57 @@
 \usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{booktabs}
-\title{Efficient CV--Job Fit Classification through Distillation and Quantization}
+\title{HireMind: Efficient CV--Job Fit Classification through Distillation and Quantization}
 \author{Rawan Khojah \quad Hams Aljohani\\Effat University\\CS4085 Deep Learning}
 \begin{document}
 \maketitle
 \section{Motivation and related work}
-HireMind is our Senior recruitment platform. We propose investigating a compact CV--job fit classifier that could later contribute evidence to its scoring workflow. The DL contribution concerns model training and efficiency; platform integration remains future work. It does not replace skill verification or recruiter decisions. A compact local classifier could reduce reliance on external API calls for matching and keep this inference step within an organization. We will measure storage and runtime; local execution alone does not guarantee privacy or lower total cost.
+HireMind is our Senior recruitment platform. We investigate a compact CV--job fit classifier that could later provide one piece of evidence to its scoring workflow; it does not replace skill verification or recruiter decisions, and platform integration is future work. A small local model could reduce reliance on external API calls for matching and keep this step inside an organization, but we only claim what we measure: quality, storage, latency and memory.
 
-\citet{gan} provide recruitment-screening context. BERT supplies the architecture foundation \citep{bert}; \citet{turc} motivate pretrained compact students. \citet{hinton} explain teacher-guided distillation, and Q8BERT \citep{q8} studies quantization in BERT. Our question is whether a small classifier benefits from distillation on limited CV--job pairs and retains that gain after simpler post-training quantization. These studies do not establish whether the distillation gain survives embedding-inclusive post-training quantization on our CV--job benchmark. We test that combination using a matched student architecture and held-out job descriptions, without claiming a new algorithm.
+\citet{gan} motivate automated resume screening. BERT \citep{bert} provides the architecture, and \citet{turc} show that pretrained compact students benefit from distillation: a 6-layer student's GLUE development meta-score rises from 82.8 to 84.4. \citet{hinton} introduce temperature-based distillation; on MNIST, a distilled small network makes 74 errors instead of 146. Q8BERT \citep{q8} shows that 8-bit quantization-aware training keeps MRPC F1 near FP32 (89.56 vs.\ 90.0), while post-training dynamic quantization loses more (87.88). \textbf{Gap:} these five sources study distillation and quantization separately; none asks whether a distillation gain in a 4.4M-parameter student survives \emph{post-training} 8-bit quantization that also covers the embeddings, which hold about 90\% of BERT-Tiny's weights (3.97M of 4.4M parameters). This matters: if quantization erases the gain, the cheaper hard-label model would be enough. We study this combination empirically on CV--job pairs, without claiming a new algorithm.
 
 \section{Question and proposed approach}
-\textbf{Research question:} Can teacher-guided training improve compact CV--job fit classification, and can quantization reduce storage while preserving the improvement?
+\textbf{Research question:} Can teacher-guided training improve compact CV--job fit classification, and can post-training quantization cut storage while keeping that improvement?
 
-Input is a CV and job description; output is \emph{No Fit}, \emph{Potential Fit} or \emph{Good Fit}. The student is Google's pretrained BERT-Tiny checkpoint, \texttt{bert\_uncased\_L-2\_H-128\_A-2}, with a three-class head. A separately fine-tuned \texttt{bert-base-uncased} supplies teacher logits.
+Input is a CV and job description; output is \emph{No Fit}, \emph{Potential Fit} or \emph{Good Fit}. The student is Google's pretrained BERT-Tiny, \texttt{bert\_uncased\_L-2\_H-128\_A-2}, with a three-class head. A fine-tuned \texttt{bert-base-uncased} teacher (same three-class head) supplies logits.
 
-\textbf{M0:} Student trained with hard-label cross-entropy. \textbf{M1:} The same student architecture and matched initialization, trained with
+\textbf{M0:} student trained with hard-label cross-entropy. \textbf{M1:} same architecture and initialization, trained with
 \begin{equation}
-L=0.5L_{CE}+0.5T^2D_{KL}(p_T\Vert p_S),
+L=0.5L_{CE}+0.5\,T^2\,\mathrm{KL}\big(\sigma(z_T/T)\,\Vert\,\sigma(z_S/T)\big),
 \end{equation}
-where teacher and student probabilities use temperature $T$. \textbf{M2:} A CPU copy of M1 with dynamic INT8 Linear modules and 8-bit weight-only Embedding modules. Layer normalization and unsupported operations remain FP32. Embeddings use a dedicated weight-only configuration. M2 requires no additional training; unlike Q8BERT, we use post-training quantization.
-
-The training strategy is Part 1; quantizing its resulting model is Part 2. The teacher is additional support, not M0. All models use identical text-pair preprocessing and a maximum of 256 tokens. Truncation frequency will be reported.
+where $z$ are logits and $\sigma$ is softmax; the $T^2$ factor is implemented. \textbf{M2:} a CPU copy of M1 converted with PyTorch \texttt{quantize\_dynamic}: Linear layers use dynamic INT8 (\texttt{default\_dynamic\_qconfig}) and embeddings 8-bit weight-only (\texttt{float\_qparams\_weight\_only\_qconfig}); layer normalization stays FP32. M2 needs no extra training. Distillation is Part 1; quantizing its result is Part 2. All models share preprocessing and a 256-token limit; truncation frequency is reported.
 
 \section{Hypotheses}
-Let $F_i$ denote mean test macro-F1 on a 0--100 scale and $S_i$ serialized model size.
-
-\textbf{H1:} $F_1-F_0\geq1.0$ percentage point.
-
-\textbf{H2:} $S_2\leq0.40S_1$, $F_1-F_2\leq1.0$ point, and $F_2-F_0\geq0.5(F_1-F_0)$, with $F_1>F_0$.
-
-These targets are exploratory, not pilot-derived. H2 targets at least 60\% less storage: quantizing embeddings covers the dominant weight table, while metadata and remaining FP32 values limit compression. We do not promise fourfold compression or faster inference. If M1 does not improve, the improvement-retention claim fails.
+Let $F_i$ be mean test macro-F1 (0--100) over three seeds and $S_i$ serialized size.
+\textbf{H1:} $F_1-F_0\geq1.0$ point.
+\textbf{H2:} $S_2\leq0.40S_1$, $F_1-F_2\leq1.0$ point, and $F_2-F_0\geq0.5(F_1-F_0)$.
+Targets are exploratory: 60\% is motivated by the embedding share, not by a pilot. H2 is fixed now and is not changed after the pilot. If H1 fails, H2's retention part is not confirmatory and only compression is reported.
 
 \section{Data and fair experiments}
-We use the instructor-approved resume--job-description fit dataset uploaded by cnamuangtoun on Hugging Face.\footnote{\url{https://huggingface.co/datasets/cnamuangtoun/resume-job-description-fit}} Its inspected revision contains 8,000 pairs: 6,241 training and 1,759 test rows, with 643 distinct CV texts and 351 job texts. Labels have counts 4,000/2,000/2,000. Six pairs have conflicting labels; quarantine their twelve rows and remove one remaining duplicate, leaving 7,987 pairs before further near-duplicate screening.
+We use the instructor-approved resume--job-description fit dataset on Hugging Face,\footnote{\url{https://huggingface.co/datasets/cnamuangtoun/resume-job-description-fit}} pinned to revision \texttt{08978e2}: 8,000 pairs (6,241 train, 1,759 test), 643 CVs, 351 jobs, labels 4,000/2,000/2,000. CV and job IDs are SHA-256 hashes of whitespace-normalized text. Rows of the six conflicting pairs (12 rows) are dropped from whichever split holds them; for the one exact duplicate, a copy in training is dropped if the pair also appears in test, leaving 7,987 unique pairs. About 20\% of training jobs, grouped by job ID, form validation (seed 42), so no validation or test job appears in training; the test file is otherwise untouched. The audit script outputs the final train/validation/test counts, which are published with split indices and file hashes on GitHub before training; CV text is not redistributed. The official split shares 476 CVs but no jobs, so we measure \emph{unseen jobs with possibly familiar CVs}, not new candidates.
 
-The official split shares 476 CV texts but no exact job texts. Preserve test jobs and reserve about 20\% of training-job groups for validation with seed 42. Exact and whitespace-normalized checks were completed; inspect near duplicates before freezing indices. This evaluates \emph{unseen jobs with potentially familiar CVs}, not wholly unseen candidates. The instructor approved its use for this project. Its original provenance, licence and labeling method remain undocumented. We will audit training labels, avoid redistributing CV text, and limit claims to the supplied benchmark labels.
+\textbf{Label validity.} Provenance, licence and labeling method are undocumented. Before training, both authors independently label 90 training pairs, sampled randomly within each class (30 per class, seed 42), using a written rubric on skills, experience and role match. We report Cohen's $\kappa$, agreement with dataset labels and per-class disagreements. This is a limited audit, not validation of all labels; test scores mean agreement with benchmark labels, not hiring validity.
 
-Use AdamW, effective batch size 16 and at most three epochs. Give M0 and M1 four validation-based hyperparameter trials each, with equal update caps. Tune learning rate for M0; tune learning rate and $T\in\{2,4\}$ for M1. Select checkpoints using validation macro-F1, then repeat selected settings at seeds 42, 43 and 44. Train the teacher on training data only; cache logits for those same examples. Freeze decisions before final test evaluation.
+\textbf{Training.} AdamW, effective batch 16, at most three epochs, equal update caps. M0 tries four learning rates; M1 tries two learning rates $\times$ $T\in\{2,4\}$, so both get four validation trials. Selected settings are rerun as three independent seeds (42--44) from the same pretrained start; we report all three paired differences and their mean $\pm$ s.d., without significance claims. The teacher is trained once on training data, selected on validation, and its cached logits are reused for every M1 run. All choices are frozen before the test set is opened.
 
-Report macro-F1, accuracy, per-class scores, confusion matrices, logical parameter count, serialized size, MACs/FLOPs under an explicit convention, CPU median/p95 latency and peak memory. Benchmark identical inputs, batch size, thread count and software, with 30 warm-up and 200 timed calls. Separate tokenization time and teacher-training cost. Report paired-seed variability; use job-grouped uncertainty estimates if feasible. Precision reduction need not reduce operation counts.
+\textbf{Measurement.} Macro-F1, accuracy, per-class scores and confusion matrices. The primary compression measure is serialized size: bytes of the model \texttt{state\_dict} saved with \texttt{torch.save}, excluding tokenizer and config, identically for M1 and M2. Latency and memory are separate empirical outcomes, not assumed consequences of quantization. Latency uses one pinned PyTorch version on one stated CPU, one thread, batch size 1, 256 tokens, 30 warm-up and 200 timed calls (median, p95), reporting model-only and tokenization-inclusive times separately, plus peak memory. MACs describe the operation graph, not realized speed.
 
 \section{Feasibility and team plan}
-Completed preparation includes full-text paper review and dataset auditing. No model has been trained and no pilot performance is claimed. A Colab pilot will check checkpoint loading, embedding quantization, save/reload, finite predictions, memory, runtime and validation performance on a small subset. Free Colab is the intended starting point, subject to resource availability.
-
-Our two-person team is approved by the instructor. Rawan leads data auditing and measurement; Hams leads training and export; both verify results and write, recording actual contributions. We selected the Technical Report track. GitHub and course-template Overleaf projects have been created and shared with the instructor. Proposed course-week allocation, subject to calendar confirmation: Week 10, labels and grouped split; Week 11, pilot, teacher and M0; Week 12, M1; Week 13, M2 and profiling; Week 14, final evaluation; Week 15, technical report, presentation and poster.
+No model has been trained. A Colab pilot on a small subset must pass: (1) Linear and Embedding modules convert; (2) M2 saves and reloads, with embedding weights still stored in 8-bit; (3) outputs are finite; (4) M2 agrees with M1 on at least 95\% of validation predictions. We also record serialized size, latency and memory. Our two-person team is approved by the instructor. Rawan leads data auditing and measurement; Hams leads training and export; both verify and write. Track: Technical Report. GitHub and Overleaf projects are shared with the instructor. Weeks (to be confirmed with the calendar): 10 labels and split; 11 pilot, teacher, M0; 12 M1; 13 M2 and profiling; 14 final evaluation; 15 report, presentation, poster.
 
 \section{Risks and fallback}
-Undocumented data provenance and labels limit external validity; seek clarification and change data only with instructor agreement if necessary. If teacher quality is weak, report negative transfer or revise to class-weighted training before opening the test set. If embedding quantization fails compatibility checks, retain Linear-only quantization as a documented fallback and revise H2 before test evaluation; report any quality loss honestly. Reduce batch size with gradient accumulation for memory limits. Treat truncation and label ambiguity as evaluation limitations. Predictions will not support autonomous hiring or claims of demographic fairness.
+If embedding quantization fails the pilot, H2 is reported as untestable for the planned M2; a Linear-only variant is then evaluated and reported separately as exploratory, with no success target. If the teacher does not beat M0 on validation, M1 still runs as planned and is reported; class-weighted training would be a separate, labelled exploratory run, never a replacement for M1. Memory limits: gradient accumulation. Label noise and truncation are reported as limitations. Predictions will not support autonomous hiring or fairness claims.
 
 \section{AI use}
-ChatGPT and Claude assisted literature analysis, dataset research and auditing, experiment planning, workspace setup and proposal drafting. The authors are responsible for checking the content and references and for the final submission. No experimental results were generated or claimed.
+ChatGPT and Claude assisted literature analysis, dataset research and auditing, experiment planning, workspace setup and drafting. The authors checked the content and references and are responsible for the submission. No experimental results were generated or claimed.
 
 \clearpage
 \begin{thebibliography}{5}
-\bibitem[Gan et al.(2024)]{gan} Chengguang Gan, Qinghao Zhang, and Tatsunori Mori. 2024. Application of LLM Agents in Recruitment: A Novel Framework for Resume Screening. \emph{arXiv:2401.08315v2}. \url{https://arxiv.org/abs/2401.08315v2}.
+\bibitem[Gan et al.(2024)]{gan} Chengguang Gan, Qinghao Zhang, and Tatsunori Mori. 2024. Application of LLM Agents in Recruitment: A Novel Framework for Automated Resume Screening. \emph{Journal of Information Processing}, 32:881--893. DOI: 10.2197/ipsjjip.32.881.
 \bibitem[Devlin et al.(2019)]{bert} Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. \emph{NAACL-HLT}, pages 4171--4186. \url{https://aclanthology.org/N19-1423/}.
 \bibitem[Turc et al.(2019)]{turc} Iulia Turc, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. Well-Read Students Learn Better: On the Importance of Pre-training Compact Models. \emph{arXiv:1908.08962v2}. \url{https://arxiv.org/abs/1908.08962v2}.
 \bibitem[Hinton et al.(2015)]{hinton} Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. 2015. Distilling the Knowledge in a Neural Network. \emph{arXiv:1503.02531}. \url{https://arxiv.org/abs/1503.02531}.
 \bibitem[Zafrir et al.(2019)]{q8} Ofir Zafrir, Guy Boudoukh, Peter Izsak, and Moshe Wasserblat. 2019. Q8BERT: Quantized 8Bit BERT. \emph{EMC2 workshop}. DOI: 10.1109/EMC2-NIPS53020.2019.00016. \url{https://arxiv.org/abs/1910.06188v2}.
 \end{thebibliography}
-% After student revision and the required NEW-CHAT review, create ai_review.tex
-% containing the final review report (not an invented score).
 \IfFileExists{ai_review.tex}{\clearpage\appendix\section{AI review report}\input{ai_review.tex}}{}
 \end{document}

@@ -4,7 +4,7 @@
 **Team:** Rawan Khojah · Hams Aljohani
 **Instructor:** Dr Naila Marir
 
-> **Status:** Proposal and dataset audit prepared; model training has not started.
+> **Status:** Proposal submitted (Assignment 1); dataset audit prepared; model training has not started.
 
 ## Project description
 
@@ -42,7 +42,7 @@ MACs/FLOPs, CPU median/p95 latency and peak memory, measured on stated hardware 
 
 | Folder / file | Contents |
 |---|---|
-| `proposal/` | `proposal.tex` (ACL format), latest proposal PDF, Prompt C hypothesis check and the instructor's reviewer prompt |
+| `proposal/` | Final proposal PDF, `proposal.tex` (ACL format), `ai_review.tex` (AI review appendix), Prompt C check and the instructor's reviewer prompt |
 | `literature/` | `references.txt` and the research pack with our reading notes on the five papers |
 | `scripts/` | `audit_dataset.py` — dataset-checking script (no training, no downloads) |
 | `data/` | `README.md` with the dataset link, inspected version and known limitations. **Raw data is not stored here.** |
@@ -67,11 +67,11 @@ Training will use Google Colab with PyTorch and Hugging Face Transformers; exact
 |---|---|
 | Five-paper review and research question | ✅ Done |
 | Dataset structure audit | ✅ Done (see `results/dataset_audit.json`) |
-| Proposal draft (M0/M1/M2, H1/H2) | ✅ Revised draft in Overleaf — final student revision in progress |
+| Assignment 1 proposal (M0/M1/M2, H1/H2) | ✅ Final version: `proposal/HireMind_DL_Proposal_Final.pdf` |
 | Prompt C hypothesis check | ✅ Done (see `proposal/prompt_c_check.md`) |
 | Instructor approval of dataset and two-person team | ✅ Approved |
 | Presentation format | ✅ Technical Report |
-| New-chat AI review (proposal appendix) | ⏳ Pending |
+| New-chat AI review (proposal appendix) | ✅ Done — 83/100, READY TO SUBMIT (see `proposal/ai_review.tex`) |
 | Dataset provenance, licence and label origin | ⚠️ Undocumented by the uploader — treated as a limitation |
 | Colab pilot | ⏳ Not started |
 | Teacher, M0, M1, M2 training and evaluation | ⏳ Not started |
