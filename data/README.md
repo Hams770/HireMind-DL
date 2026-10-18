@@ -17,6 +17,8 @@
 
 Full counts and file hashes: `../results/dataset_audit.json`.
 
+**Status:** Approved by the instructor for this project.
+
 ## Known limitations
 
 - **No dataset card or licence** in the inspected revision, so permission to use is not documented.
@@ -32,4 +34,3 @@ Full counts and file hashes: `../results/dataset_audit.json`.
 - **Raw CV text is not committed** while usage permission is unresolved. Keep downloads in `data/raw/`
   (ignored by git).
 - Do not relabel or redistribute the data.
-- Training starts only after the instructor accepts the dataset or an approved replacement is chosen.

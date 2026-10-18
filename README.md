@@ -29,11 +29,11 @@ quantization reduce model size while preserving the improvement?
 | **Teacher** (support only) | `bert-base-uncased`, fine-tuned on the training split; its logits are cached for distillation |
 | **M0** — baseline | BERT-Tiny (`google/bert_uncased_L-2_H-128_A-2`, ≈4.4M parameters) trained with hard-label cross-entropy |
 | **M1** — DL change | Same student and initialization, trained with `0.5·CE + 0.5·T²·KL(teacher ‖ student)` |
-| **M2** — efficiency | CPU copy of M1 with dynamic INT8 quantization (no extra training) |
+| **M2** — efficiency | CPU copy of M1 with dynamic INT8 Linear layers and 8-bit weight-only embeddings (post-training, no extra training) |
 
 **Hypotheses (exploratory targets):**
 - **H1:** M1 improves test macro-F1 over M0 by at least 1.0 point.
-- **H2:** M2 is at least 5% smaller than M1, loses at most 1.0 macro-F1 point, and keeps at least half of M1's gain over M0.
+- **H2:** M2 is at least 60% smaller than M1, loses at most 1.0 macro-F1 point, and keeps at least half of M1's gain over M0.
 
 **Measurements:** macro-F1, accuracy, per-class scores, confusion matrix, parameter count, serialized size,
 MACs/FLOPs, CPU median/p95 latency and peak memory, measured on stated hardware under the same settings.
@@ -42,7 +42,7 @@ MACs/FLOPs, CPU median/p95 latency and peak memory, measured on stated hardware 
 
 | Folder / file | Contents |
 |---|---|
-| `proposal/` | `proposal.tex` (ACL format) and the latest proposal PDF |
+| `proposal/` | `proposal.tex` (ACL format), latest proposal PDF, Prompt C hypothesis check and the instructor's reviewer prompt |
 | `literature/` | `references.txt` and the research pack with our reading notes on the five papers |
 | `scripts/` | `audit_dataset.py` — dataset-checking script (no training, no downloads) |
 | `data/` | `README.md` with the dataset link, inspected version and known limitations. **Raw data is not stored here.** |
@@ -67,8 +67,12 @@ Training will use Google Colab with PyTorch and Hugging Face Transformers; exact
 |---|---|
 | Five-paper review and research question | ✅ Done |
 | Dataset structure audit | ✅ Done (see `results/dataset_audit.json`) |
-| Proposal draft (M0/M1/M2, H1/H2) | ✅ Draft in Overleaf — being revised by the team |
-| Dataset provenance, permission and label origin | ⏳ Pending |
+| Proposal draft (M0/M1/M2, H1/H2) | ✅ Revised draft in Overleaf — final student revision in progress |
+| Prompt C hypothesis check | ✅ Done (see `proposal/prompt_c_check.md`) |
+| Instructor approval of dataset and two-person team | ✅ Approved |
+| Presentation format | ✅ Technical Report |
+| New-chat AI review (proposal appendix) | ⏳ Pending |
+| Dataset provenance, licence and label origin | ⚠️ Undocumented by the uploader — treated as a limitation |
 | Colab pilot | ⏳ Not started |
 | Teacher, M0, M1, M2 training and evaluation | ⏳ Not started |
 | Final report, presentation, poster | ⏳ Not started |

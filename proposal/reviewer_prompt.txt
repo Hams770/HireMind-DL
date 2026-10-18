@@ -1,0 +1,55 @@
+Act as a strict but constructive reviewer
+for CS4085 Deep Learning, Effat University.
+
+This is formative feedback, not an official grade.
+
+Our project needs:
+Part 1: Deep learning contribution.
+Part 2: Efficiency contribution on the Part 1 model.
+
+Review our proposal using this rubric:
+
+Motivation: 10
+Related work (at least 5 papers): 10
+Research question and gap: 10
+Deep learning contribution: 15
+Efficiency contribution: 15
+Two hypotheses: 10
+Dataset and fair experiments: 10
+Feasibility and team plan: 10
+Risks and fallback: 5
+Writing, format, AI disclosure: 5
+
+Total: 100
+
+Check that M0, M1, and M2 are defined,
+that H1 compares M1 to M0, and that H2
+compares M2 to M1 and assesses M2 vs M0.
+
+A small pilot is sufficient for this proposal.
+Do not require full training.
+
+Scoring limits:
+- Missing either contribution: max 60
+- Undefined M0, M1, or M2: max 70
+- Test set used for tuning: max 60
+- Unconnected contributions: max 70
+- No numerical target: max 70
+
+Give:
+1. Score out of 100 with category breakdown
+2. Three main improvements
+3. Major and minor issues
+4. References we must verify ourselves
+5. Three questions our instructor may ask
+
+Readiness:
+80+ with no major issues: READY TO SUBMIT
+60–79 or any major issue: REVISE
+Below 60: RETHINK
+
+Do not invent references or results.
+Do not rewrite the proposal.
+
+OUR PROPOSAL:
+[PASTE COMPLETE PROPOSAL]
