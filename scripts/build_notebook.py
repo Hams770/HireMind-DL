@@ -207,6 +207,8 @@ md("## 5. Milestone 2 — M0 architecture: parameters and MACs per block")
 code(r'''
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import TensorDataset, DataLoader
+from transformers import AutoTokenizer
+tok = AutoTokenizer.from_pretrained(STUDENT)
 
 def new_model(seed, dropout=None):
     set_seed(seed)                       # makes the new classifier head identical for M0 and (later) M1
@@ -219,6 +221,7 @@ def encode(df):
     return TensorDataset(enc["input_ids"], enc["attention_mask"], enc["token_type_ids"],
                          torch.tensor(df.label_id.values, dtype=torch.long))
 
+tr = splits[splits.split == "train"]; va = splits[splits.split == "validation"]
 train_ds, val_ds = encode(tr), encode(va)     # the test set is NOT encoded in this notebook
 print(len(train_ds), len(val_ds))
 
