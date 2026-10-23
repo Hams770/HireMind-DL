@@ -41,9 +41,10 @@
 \newcommand{\MzeroTrainTime}{\RUN}\newcommand{\MzeroPeakGPU}{\RUN}
 \newcommand{\EnvGPU}{\RUN}\newcommand{\EnvCPU}{\RUN}\newcommand{\EnvTorch}{\RUN}\newcommand{\EnvTransformers}{\RUN}
 \newcommand{\LRRows}{-- & -- & -- & -- & -- \\}
-\InputIfFileExists{tex/report_numbers.tex}{}{}
+\InputIfFileExists{tex/report_numbers.tex}{}{\InputIfFileExists{report_numbers.tex}{}{}}
 
-\newcommand{\fig}[2]{\IfFileExists{#1}{\includegraphics[width=#2]{#1}}{\fbox{\parbox{#2}{\centering\vspace{1em}\RUN\\\texttt{\detokenize{#1}}\vspace{1em}}}}}
+% \fig{file}{width}: looks in figures/ first, then in the main folder.
+\newcommand{\fig}[2]{\IfFileExists{figures/#1}{\includegraphics[width=#2]{figures/#1}}{\IfFileExists{#1}{\includegraphics[width=#2]{#1}}{\fbox{\parbox{#2}{\centering\vspace{1em}\RUN\\\texttt{\detokenize{#1}}\vspace{1em}}}}}}
 
 \title{HireMind: Efficient CV--Job Fit Classification through Distillation and Quantization\\[4pt]
 \large Milestones 1 \& 2 --- Related Work, Dataset, Architecture, Baseline and Experimental Plan}
@@ -135,7 +136,7 @@ Pairs longer than 256 tokens & \TruncPct\% \\
 
 \begin{figure*}[t]
 \centering
-\fig{figures/dataset_overview.png}{0.85\textwidth}
+\fig{dataset_overview.png}{0.85\textwidth}
 \caption{Left: class counts in the original train and test files. Right: CV + job length in word-pieces; the red line is our 256-token limit.}
 \label{fig:data}
 \end{figure*}
@@ -179,7 +180,7 @@ Figure~\ref{fig:arch} shows M0. \textbf{Input:} a CV and a job description, toke
 
 \begin{figure*}[t]
 \centering
-\fig{figures/m0_architecture.pdf}{0.62\textwidth}
+\fig{m0_architecture.pdf}{0.62\textwidth}
 \caption{M0 with parameters and MACs per block. Dashed purple blocks are the modules quantized in M2; the red box shows the extra distillation loss used to train M1.}
 \label{fig:arch}
 \end{figure*}
@@ -239,10 +240,10 @@ LR & Macro-F1 & Acc. & Val.\ loss & Best step \\
 
 \begin{figure*}[t]
 \centering
-\fig{figures/m0_curves.png}{0.8\textwidth}\\[4pt]
-\fig{figures/overfit_one_batch.png}{0.3\textwidth}\hspace{1em}
-\fig{figures/m0_confusion_val.png}{0.27\textwidth}\hspace{1em}
-\fig{figures/m0_lr_search.png}{0.3\textwidth}
+\fig{m0_curves.png}{0.8\textwidth}\\[4pt]
+\fig{overfit_one_batch.png}{0.3\textwidth}\hspace{1em}
+\fig{m0_confusion_val.png}{0.27\textwidth}\hspace{1em}
+\fig{m0_lr_search.png}{0.3\textwidth}
 \caption{Top: M0 training and validation loss and validation macro-F1 (dotted lines mark epochs). Bottom: overfit-one-batch test, validation confusion matrix, learning-rate search.}
 \label{fig:curves}
 \end{figure*}
