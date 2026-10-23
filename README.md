@@ -109,5 +109,5 @@ Only results produced by the notebook are reported. Validation is used for all c
 
 ## Links
 
-- Overleaf project (proposal, view-only): https://www.overleaf.com/project/6acffdc25099ba40f22e8c46/share#865f4fc4739de1c88a160527c2ef36eae1981d1718b814aa
-- Portfolio website: _add link_
+Overleaf item 1 (proposal): https://www.overleaf.com/project/6acffdc25099ba40f22e8c46/share#865f4fc4739de1c88a160527c2ef36eae1981d1718b814aa
+Overleaf item 2 (Milestones 1–2) :https://www.overleaf.com/project/6adb4cc6c2e32fc022083954/share#4ba0bb552aa2a65c09a740720fe7b8bfbae12b644691937f
