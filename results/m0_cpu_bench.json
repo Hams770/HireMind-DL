@@ -5,14 +5,15 @@
   "warmup": 30,
   "runs": 200,
   "model_only": {
-    "median_ms": 6.332688499981032,
-    "p95_ms": 9.704551000027095
+    "median_ms": 5.439432000059696,
+    "p95_ms": 8.785579999994297
   },
   "tokenization_inclusive": {
-    "median_ms": 28.504095500011317,
-    "p95_ms": 33.676184999990255
+    "median_ms": 24.184546500066517,
+    "p95_ms": 28.595463999977255
   },
-  "rss_after_imports_mib": 3448.12109375,
-  "peak_rss_mib": 3448.12109375,
+  "rss_after_imports_mib": 770.53515625,
+  "peak_rss_mib": 864.44140625,
+  "rss_end_mib": 864.44140625,
   "torch": "2.11.0+cu130"
 }

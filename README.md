@@ -48,7 +48,7 @@ MACs/FLOPs, CPU median/p95 latency and peak memory, measured on stated hardware 
 | `scripts/` | `data_prep.py` (audit, cleaning, grouped split), `bench_cpu.py` (CPU latency/memory in a fresh process), `draw_architecture.py` (M0 diagram), `build_notebook.py` (regenerates the notebook), `audit_dataset.py` (Assignment 1 audit) |
 | `splits/` | `splits.csv` + `manifest.json` — exact train/validation/test row IDs (hashed, no text); see `splits/README.md` |
 | `figures/` | Architecture diagram and figures produced by the notebook |
-| `report/milestones_1_2/` | Assignment 2 report (`main.tex`, ACL format) |
+| `report/milestones_1_2/` | Assignment 2 report: `HireMind_A2_Milestones_1_2.pdf` and its source (`main.tex`, ACL format) |
 | `data/` | `README.md` with the dataset link, inspected version and known limitations. **Raw data is not stored here.** |
 | `results/` | `dataset_audit.json` (Assignment 1) and, after the notebook runs, `dataset_stats.json`, `m0_baseline.json`, `m0_cpu_bench.json` — **validation results only** |
 
@@ -96,11 +96,12 @@ Local alternative: `pip install -r requirements.txt`, then run the notebook with
 |---|---|---|
 | Majority class | 22.2 | 49.8 |
 | TF-IDF + logistic regression | 36.7 | 52.8 |
-| M0, seed 42 (lr 3e-4) | 47.1 | 54.8 |
-| M0, seeds 42–44 (mean ± s.d.) | 44.3 ± 4.5 | 52.4 ± 2.5 |
+| M0, seed 42 (lr 3e-4) | 48.2 | 56.2 |
+| M0, seeds 42–44 (mean ± s.d.) | 44.6 ± 5.0 | 53.5 ± 2.4 |
 
 Overfit-one-batch test passed (loss 1.150 → 0.0009, 100% accuracy). Cost: 4,386,307 parameters, 134.2 M MACs per pair,
-16.74 MiB saved weights, 6.3 ms median CPU latency (1 thread, batch 1; 28.5 ms including tokenisation).
+16.74 MiB saved weights, 5.4 ms median CPU latency (1 thread, batch 1; 24.2 ms including tokenisation),
+peak memory 864 MiB (771 MiB of which is PyTorch/Transformers after import).
 All pairs exceed 256 tokens (median 1,563), so the model sees only the start of each text.
 Figures: `figures/`; raw numbers: `results/m0_baseline.json`.
 
