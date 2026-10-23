@@ -449,6 +449,7 @@ macros = {
   "MzeroSizeMB": f'{size_bytes/2**20:.2f}', "MzeroLatMed": f'{bench["model_only"]["median_ms"]:.2f}',
   "MzeroLatPninetyfive": f'{bench["model_only"]["p95_ms"]:.2f}', "MzeroLatTokMed": f'{bench["tokenization_inclusive"]["median_ms"]:.2f}',
   "MzeroRSS": f'{bench["peak_rss_mib"]:.0f}', "MzeroRSSBase": f'{bench["rss_after_imports_mib"]:.0f}',
+  "MzeroRSSDelta": f'{bench["peak_rss_mib"] - bench["rss_after_imports_mib"]:.0f}',
   "MzeroTrainTime": f'{best_run["train_time_s"]:.0f}',
   "MzeroPeakGPU": f'{best_run["peak_gpu_mem_mib"]:.0f}' if best_run["peak_gpu_mem_mib"] else "n/a",
   "EnvGPU": tex_escape(ENV["gpu"]), "EnvCPU": tex_escape(ENV["cpu"]), "EnvTorch": tex_escape(ENV["torch"]),

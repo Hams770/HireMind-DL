@@ -7,7 +7,6 @@ example.json = {"resume": "...", "job": "..."}  (one validation pair, kept outsi
 """
 import argparse
 import json
-import resource
 import statistics
 import time
 
@@ -17,8 +16,14 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 STUDENT = "google/bert_uncased_L-2_H-128_A-2"
 
 
-def rss_mib():
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0  # Linux: KiB -> MiB
+def mem_mib(field):
+    """Read VmRSS (current) or VmHWM (peak) of THIS process from /proc/self/status.
+    ru_maxrss is not used: on Linux it can carry over the parent notebook's peak after exec."""
+    with open("/proc/self/status") as f:
+        for line in f:
+            if line.startswith(field + ":"):
+                return int(line.split()[1]) / 1024.0  # kB -> MiB
+    return float("nan")
 
 
 def timed(fn, warmup, runs):
@@ -45,7 +50,7 @@ def main():
     a = ap.parse_args()
 
     torch.set_num_threads(a.threads)
-    rss_after_imports = rss_mib()
+    rss_after_imports = mem_mib("VmRSS")
     tok = AutoTokenizer.from_pretrained(STUDENT)
     model = AutoModelForSequenceClassification.from_pretrained(STUDENT, num_labels=3, attn_implementation="eager")
     model.load_state_dict(torch.load(a.weights, map_location="cpu"))
@@ -64,7 +69,8 @@ def main():
         "threads": a.threads, "batch_size": 1, "seq_len": a.max_len,
         "warmup": a.warmup, "runs": a.runs,
         "model_only": model_only, "tokenization_inclusive": with_tok,
-        "rss_after_imports_mib": rss_after_imports, "peak_rss_mib": rss_mib(),
+        "rss_after_imports_mib": rss_after_imports, "peak_rss_mib": mem_mib("VmHWM"),
+        "rss_end_mib": mem_mib("VmRSS"),
         "torch": torch.__version__,
     }
     json.dump(result, open(a.out, "w"), indent=2)

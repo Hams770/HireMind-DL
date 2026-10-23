@@ -18,3 +18,4 @@ __pycache__/
 
 # Notebook private outputs (raw text, checkpoints)
 private/
+!splits/splits.csv

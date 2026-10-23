@@ -1,0 +1,69 @@
+{
+  "rows": 8000,
+  "train": {
+    "rows": 6241,
+    "class_counts": {
+      "No Fit": 3143,
+      "Potential Fit": 1556,
+      "Good Fit": 1542
+    },
+    "unique_cvs": 642,
+    "unique_jobs": 280
+  },
+  "test": {
+    "rows": 1759,
+    "class_counts": {
+      "No Fit": 857,
+      "Potential Fit": 444,
+      "Good Fit": 458
+    },
+    "unique_cvs": 477,
+    "unique_jobs": 71
+  },
+  "class_counts_total": {
+    "No Fit": 4000,
+    "Potential Fit": 2000,
+    "Good Fit": 2000
+  },
+  "unique_cvs": 643,
+  "unique_jobs": 351,
+  "unique_pairs": 7993,
+  "duplicate_pair_excess_rows": 7,
+  "conflicting_pairs": 6,
+  "conflicting_rows": 12,
+  "overlap_train_test": {
+    "cvs": 476,
+    "jobs": 0,
+    "pairs": 0
+  },
+  "near_duplicates": {
+    "threshold": 0.95,
+    "job_pairs": 3,
+    "job_pairs_across_train_test": 2,
+    "job_groups": 349,
+    "cv_pairs": 23,
+    "cv_groups": 620
+  },
+  "source": {
+    "repo": "cnamuangtoun/resume-job-description-fit",
+    "revision": "08978e21714984bb417547d2c0f9b477f5298163",
+    "files": [
+      ".gitattributes",
+      "test.csv",
+      "train.csv"
+    ],
+    "sha256": {
+      "test": "f3c48f4cc3559bf192ebb9c241a30c601b5b8b3eee6f1656dd4d26dfd4b0887a",
+      "train": "b86fa488a21258015de1750633a9ac410f701ff96bf533f68978dbe3adec6d40"
+    },
+    "licence": "none stated in repository (no dataset card)",
+    "instructor_approved": true
+  },
+  "tokens": {
+    "cv_median": 1043.0,
+    "job_median": 422.0,
+    "pair_median": 1563.0,
+    "pair_p90": 2467.2000000000007,
+    "pct_pairs_truncated_at_256": 100.0
+  }
+}

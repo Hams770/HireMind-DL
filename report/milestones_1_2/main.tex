@@ -37,7 +37,7 @@
 \newcommand{\MzeroPoolerParams}{16,512}\newcommand{\MzeroClsParams}{387}\newcommand{\MzeroEmbShare}{90.6}
 \newcommand{\MzeroMACsM}{\RUN}\newcommand{\MzeroLayerMACsM}{\RUN}\newcommand{\MzeroMACsAnalyticM}{134.2}
 \newcommand{\MzeroSizeMB}{\RUN}\newcommand{\MzeroLatMed}{\RUN}\newcommand{\MzeroLatPninetyfive}{\RUN}
-\newcommand{\MzeroLatTokMed}{\RUN}\newcommand{\MzeroRSS}{\RUN}\newcommand{\MzeroRSSBase}{\RUN}
+\newcommand{\MzeroLatTokMed}{\RUN}\newcommand{\MzeroRSS}{\RUN}\newcommand{\MzeroRSSBase}{\RUN}\newcommand{\MzeroRSSDelta}{\RUN}
 \newcommand{\MzeroTrainTime}{\RUN}\newcommand{\MzeroPeakGPU}{\RUN}
 \newcommand{\EnvGPU}{\RUN}\newcommand{\EnvCPU}{\RUN}\newcommand{\EnvTorch}{\RUN}\newcommand{\EnvTransformers}{\RUN}
 \newcommand{\LRRows}{-- & -- & -- & -- & -- \\}
@@ -151,7 +151,7 @@ Pairs longer than 256 tokens & \TruncPct\% \\
 (4)~training rows whose job is a near-duplicate of a test job are removed (\NRemovedNearDup\ rows);
 (5)~the official test file is kept as the test set;
 (6)~validation is one fold of a stratified group 5-fold split of the cleaned training file (groups = job, stratified by label, seed 42).
-Text is tokenised as \texttt{[CLS] CV [SEP] job [SEP]}, truncated longest-first to 256 tokens and padded. The exact row IDs of each split are saved in \texttt{splits/splits.csv}. The test set is only for the final evaluation.
+Text is tokenised as \texttt{[CLS] CV [SEP] job [SEP]}, truncated longest-first to 256 tokens and padded. Every pair is longer than this limit (median \TokPairMedian\ word-pieces: CV median 1,043, job 422), so the model sees roughly the first 125 tokens of each text; this is a known limitation shared by all three models. The exact row IDs of each split are saved in \texttt{splits/splits.csv}. The test set is only for the final evaluation.
 
 \begin{table}[t]
 \centering\small
@@ -247,7 +247,12 @@ LR & Macro-F1 & Acc. & Val.\ loss & Best step \\
 \label{fig:curves}
 \end{figure*}
 
-\textbf{Computational cost.} Saved weights (\texttt{state\_dict}): \MzeroSizeMB\,MiB. CPU latency (\EnvCPU, 1 thread, batch 1, 256 tokens, 30 warm-up and 200 timed runs): median \MzeroLatMed\,ms, p95 \MzeroLatPninetyfive\,ms for the model alone and \MzeroLatTokMed\,ms including tokenisation. Peak process memory: \MzeroRSS\,MiB (\MzeroRSSBase\,MiB after imports only). Training the selected run took \MzeroTrainTime\,s on \EnvGPU\ with a peak GPU memory of \MzeroPeakGPU\,MiB.
+\textbf{Is the baseline credible?} M0 clearly beats both simple references, passes the overfit test, and its training loss decreases steadily (Figure~\ref{fig:curves}). Three observations shape the next steps.
+(1)~After about 200 updates the validation loss rises while the training loss keeps falling, yet validation macro-F1 continues to improve: the model becomes more confident without becoming less accurate. Selecting checkpoints by macro-F1 rather than by loss is therefore important, and M1 will use the same rule.
+(2)~The best learning rate is the largest one tried, and macro-F1 varies across seeds (\MzeroFoneMean\,$\pm$\,\MzeroFoneSD). Paired seeds are essential for E1: a single run could show or hide a 1-point difference by chance.
+(3)~\TruncPct\% of pairs are longer than 256 tokens (median \TokPairMedian), so the model sees only the beginning of each CV and job description, often contact details and company introductions. \emph{No Fit} is recognised best, while \emph{Potential} and \emph{Good Fit} are often confused with each other and with \emph{No Fit}. The limit is the same for M0, M1 and M2, so the comparisons stay fair, but it caps absolute performance; selecting the skills and requirements sections is a candidate follow-up experiment.
+
+\textbf{Computational cost.} Saved weights (\texttt{state\_dict}): \MzeroSizeMB\,MiB. CPU latency (\EnvCPU, 1 thread, batch 1, 256 tokens, 30 warm-up and 200 timed runs): median \MzeroLatMed\,ms, p95 \MzeroLatPninetyfive\,ms for the model alone and \MzeroLatTokMed\,ms including tokenisation. Peak process memory: \MzeroRSS\,MiB, of which \MzeroRSSBase\,MiB is PyTorch and Transformers after import, so loading and running the model adds about \MzeroRSSDelta\,MiB. Tokenising the long raw texts takes longer than running the model itself. Training the selected run took \MzeroTrainTime\,s on \EnvGPU\ with a peak GPU memory of \MzeroPeakGPU\,MiB.
 
 \subsection{Proposed M1: distillation (Part 1)}
 \textbf{Change.} Same student, same initialisation, same data and update budget as M0, but trained with

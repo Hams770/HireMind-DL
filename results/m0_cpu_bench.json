@@ -1,0 +1,18 @@
+{
+  "threads": 1,
+  "batch_size": 1,
+  "seq_len": 256,
+  "warmup": 30,
+  "runs": 200,
+  "model_only": {
+    "median_ms": 6.332688499981032,
+    "p95_ms": 9.704551000027095
+  },
+  "tokenization_inclusive": {
+    "median_ms": 28.504095500011317,
+    "p95_ms": 33.676184999990255
+  },
+  "rss_after_imports_mib": 3448.12109375,
+  "peak_rss_mib": 3448.12109375,
+  "torch": "2.11.0+cu130"
+}

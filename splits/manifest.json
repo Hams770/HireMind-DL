@@ -1,0 +1,72 @@
+{
+  "seed": 42,
+  "policy": "HireMind DL - dataset audit, cleaning and grouped train/validation/test split.\n\nPure pandas / scikit-learn (no PyTorch), so it can be tested anywhere.\nUsed by notebooks/HireMind_M0_Baseline.ipynb.\n\nSplit policy (fixed before any model training):\n  * IDs: cv_id / job_id = first 16 hex chars of SHA-256 of whitespace-normalised, lower-cased text.\n  * Near-duplicate job descriptions (TF-IDF cosine >= NEAR_DUP_THRESHOLD) share one job_group.\n  * Every row of a pair that carries conflicting labels is removed (any split).\n  * Exact duplicate pairs: one copy is kept; if a pair occurs in both files, the training copy is dropped.\n  * Training rows whose job is a near-duplicate of a test job are dropped.\n  * The official test file is kept as the test set (only the removals above).\n  * Validation = one fold of StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=SEED)\n    on the cleaned training file, grouped by job_group, stratified by label.",
+  "removals": {
+    "removed_conflicting_rows": {
+      "train": 12,
+      "test": 0
+    },
+    "removed_train_rows_duplicated_in_test": 0,
+    "removed_within_split_duplicates": {
+      "train": 1,
+      "test": 0
+    },
+    "removed_train_rows_near_duplicate_of_test_job": 73
+  },
+  "checks": {
+    "train_val_job_group_overlap": 0,
+    "train_test_job_overlap": 0,
+    "val_test_job_overlap": 0,
+    "pair_overlap_any": 0,
+    "classes_in_validation": 3,
+    "cv_overlap_train_test": 474,
+    "cv_overlap_train_val": 418
+  },
+  "counts": {
+    "train": {
+      "rows": 4993,
+      "cvs": 636,
+      "jobs": 223,
+      "class_counts": {
+        "No Fit": 2533,
+        "Potential Fit": 1231,
+        "Good Fit": 1229
+      }
+    },
+    "validation": {
+      "rows": 1162,
+      "cvs": 423,
+      "jobs": 55,
+      "class_counts": {
+        "No Fit": 579,
+        "Potential Fit": 294,
+        "Good Fit": 289
+      }
+    },
+    "test": {
+      "rows": 1759,
+      "cvs": 477,
+      "jobs": 71,
+      "class_counts": {
+        "No Fit": 857,
+        "Potential Fit": 444,
+        "Good Fit": 458
+      }
+    }
+  },
+  "source": {
+    "repo": "cnamuangtoun/resume-job-description-fit",
+    "revision": "08978e21714984bb417547d2c0f9b477f5298163",
+    "files": [
+      ".gitattributes",
+      "test.csv",
+      "train.csv"
+    ],
+    "sha256": {
+      "test": "f3c48f4cc3559bf192ebb9c241a30c601b5b8b3eee6f1656dd4d26dfd4b0887a",
+      "train": "b86fa488a21258015de1750633a9ac410f701ff96bf533f68978dbe3adec6d40"
+    },
+    "licence": "none stated in repository (no dataset card)",
+    "instructor_approved": true
+  }
+}
