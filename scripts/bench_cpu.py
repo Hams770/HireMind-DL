@@ -45,20 +45,22 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--threads", type=int, default=1)
     ap.add_argument("--max_len", type=int, default=256)
+    ap.add_argument("--max_chars", type=int, default=6000)  # same character cut as training
+    ap.add_argument("--revision", default=None)             # pinned model/tokenizer commit
     ap.add_argument("--warmup", type=int, default=30)
     ap.add_argument("--runs", type=int, default=200)
     a = ap.parse_args()
 
     torch.set_num_threads(a.threads)
     rss_after_imports = mem_mib("VmRSS")
-    tok = AutoTokenizer.from_pretrained(STUDENT)
-    model = AutoModelForSequenceClassification.from_pretrained(STUDENT, num_labels=3, attn_implementation="eager")
+    tok = AutoTokenizer.from_pretrained(STUDENT, revision=a.revision)
+    model = AutoModelForSequenceClassification.from_pretrained(STUDENT, revision=a.revision, num_labels=3, attn_implementation="eager")
     model.load_state_dict(torch.load(a.weights, map_location="cpu"))
     model.eval()
     ex = json.load(open(a.example))
 
     def encode():
-        return tok(ex["resume"], ex["job"], truncation="longest_first", max_length=a.max_len,
+        return tok(ex["resume"][:a.max_chars], ex["job"][:a.max_chars], truncation="longest_first", max_length=a.max_len,
                    padding="max_length", return_tensors="pt")
 
     enc = encode()
@@ -67,7 +69,7 @@ def main():
         with_tok = timed(lambda: model(**encode()), a.warmup, a.runs)
     result = {
         "threads": a.threads, "batch_size": 1, "seq_len": a.max_len,
-        "warmup": a.warmup, "runs": a.runs,
+        "warmup": a.warmup, "runs": a.runs, "max_chars": a.max_chars, "revision": a.revision,
         "model_only": model_only, "tokenization_inclusive": with_tok,
         "rss_after_imports_mib": rss_after_imports, "peak_rss_mib": mem_mib("VmHWM"),
         "rss_end_mib": mem_mib("VmRSS"),

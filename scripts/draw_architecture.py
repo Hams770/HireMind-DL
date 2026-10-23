@@ -15,8 +15,8 @@ INK = "#1f2937"; MUTED = "#6b7280"
 EMB = "#fde68a"; ENC = "#bfdbfe"; HEAD = "#bbf7d0"; IO = "#f3f4f6"
 Q_EDGE = "#7c3aed"; KD = "#fecaca"
 
-fig, ax = plt.subplots(figsize=(11, 13))
-ax.set_xlim(-2, 100); ax.set_ylim(0, 132); ax.axis("off")
+fig, ax = plt.subplots(figsize=(8.2, 10.6))
+ax.set_xlim(-2, 100); ax.set_ylim(0, 144); ax.axis("off")
 LINE = 2.9
 
 
@@ -41,15 +41,15 @@ def cost(y_mid, params, macs):
     ax.text(72, y_mid - 1.6, macs, ha="left", va="center", fontsize=8.2, color=MUTED)
 
 
-ax.text(49, 130.5, "M0: BERT-Tiny CV–job fit classifier (L=2, H=128, A=2, 256 tokens)",
+ax.text(49, 141, "M0: BERT-Tiny CV–job fit classifier (L=2, H=128, A=2, 256 tokens)",
         ha="center", fontsize=13, weight="bold", color=INK)
-ax.text(72, 124.5, "Parameters\nMACs per pair (256 tokens)", ha="left", va="center", fontsize=8.6, color=MUTED)
+ax.text(72, 135, "Parameters\nMACs per pair (256 tokens)", ha="left", va="center", fontsize=8.6, color=MUTED)
 
 X, W, GAP = 16, 52, 3.4
 cx = X + W / 2
 blocks = [
     dict(title="Input", lines=["CV text  +  job description text"], fc=IO, q=False, cost=None),
-    dict(title="WordPiece tokenizer (uncased, 30,522-token vocabulary)",
+    dict(title="WordPiece tokenizer (30,522-word vocab)",
          lines=["[CLS] CV tokens [SEP] job tokens [SEP] → 256 ids",
                 "longest-first truncation · segment ids 0/1 · padding mask"], fc=IO, q=False, cost=("0", "—")),
     dict(title="Embeddings",
@@ -85,7 +85,7 @@ for k, b in enumerate(blocks):
     y_top = y - GAP
 
 ax.text(72, 4.5, "Total: 4,386,307 parameters\n≈134.2 M MACs per pair", ha="left", va="center",
-        fontsize=10.5, weight="bold", color=INK)
+        fontsize=9.2, weight="bold", color=INK)
 
 # M1 annotation (left)
 my = centers["Pooler + classifier head"]
@@ -96,8 +96,8 @@ for i, t in enumerate(["Teacher", "BERT-base", "(fine-tuned,", "training only)",
 arrow(13.2, my + 2, X - 0.3, my + 2, color="#b91c1c", ls="--")
 
 # M2 legend (top right)
-ax.text(72, 117, "M2 change (post-training):", fontsize=9, weight="bold", color=Q_EDGE)
-ax.text(72, 114.5, "dashed purple boxes are quantized\n• all Linear layers → dynamic INT8\n• embeddings → 8-bit weight-only\n• LayerNorm stays FP32",
+ax.text(72, 129, "M2 change (post-training):", fontsize=9, weight="bold", color=Q_EDGE)
+ax.text(72, 126.5, "dashed purple boxes are quantized\n• all Linear layers → dynamic INT8\n• embeddings → 8-bit weight-only\n• LayerNorm stays FP32",
         fontsize=8.4, va="top", color=Q_EDGE)
 
 plt.tight_layout()

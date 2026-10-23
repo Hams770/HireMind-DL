@@ -45,7 +45,8 @@ code(r'''
 import os, json, time, random, platform, hashlib, statistics, copy, shutil, subprocess, sys
 import numpy as np, pandas as pd, torch, matplotlib.pyplot as plt
 import transformers, sklearn
-from huggingface_hub import list_repo_files, hf_hub_download
+import huggingface_hub
+from huggingface_hub import list_repo_files, hf_hub_download, model_info
 import importlib, data_prep as dp
 importlib.reload(dp)
 
@@ -55,6 +56,8 @@ REVISION = "08978e21714984bb417547d2c0f9b477f5298163"   # pinned revision from A
 EXPECTED_SHA = {"train": "b86fa488a21258015de1750633a9ac410f701ff96bf533f68978dbe3adec6d40",
                 "test":  "f3c48f4cc3559bf192ebb9c241a30c601b5b8b3eee6f1656dd4d26dfd4b0887a"}
 STUDENT = "google/bert_uncased_L-2_H-128_A-2"
+STUDENT_REV = model_info(STUDENT).sha     # exact model/tokenizer commit; every load below uses it (M1/M2 reuse this value)
+MAX_CHARS = 6000                         # characters kept per text before tokenisation (same for training, checks and CPU benchmark)
 MAX_LEN, BATCH, EPOCHS = 256, 16, 3
 LRS = [2e-5, 5e-5, 1e-4, 3e-4]          # M0 search space (4 trials, as planned)
 EXTRA_SEEDS = [43, 44]
@@ -81,8 +84,14 @@ def cpu_name():
 ENV = {"python": platform.python_version(), "torch": torch.__version__,
        "transformers": transformers.__version__, "sklearn": sklearn.__version__,
        "device": DEVICE, "gpu": torch.cuda.get_device_name(0) if DEVICE == "cuda" else "none",
+       "numpy": np.__version__, "pandas": pd.__version__, "huggingface_hub": huggingface_hub.__version__,
+       "student_model": STUDENT, "student_revision": STUDENT_REV, "dataset_revision": REVISION,
        "cpu": cpu_name(), "cpu_count": os.cpu_count()}
 print(json.dumps(ENV, indent=2))
+with open(f"{OUT}/results/tested_versions.txt", "w") as f:   # versions this run was tested with
+    for k in ("python", "torch", "transformers", "sklearn", "numpy", "pandas", "huggingface_hub"):
+        f.write(f"{k}=={ENV[k]}\n")
+    f.write(f"# {STUDENT} @ {STUDENT_REV}\n# dataset revision {REVISION}\n")
 ''')
 
 md("## 1. Load the dataset at the pinned revision and verify file hashes")
@@ -96,7 +105,8 @@ for f in files:
         paths[key] = hf_hub_download(REPO, f, repo_type="dataset", revision=REVISION)
 sha = {k: hashlib.sha256(open(p, "rb").read()).hexdigest() for k, p in paths.items()}
 for k in ("train", "test"):
-    print(k, "hash matches Assignment 1 audit:", sha.get(k) == EXPECTED_SHA[k])
+    assert sha.get(k) == EXPECTED_SHA[k], f"{k} file hash differs from the Assignment 1 audit - stop"
+    print(k, "hash matches Assignment 1 audit")
 train_df = pd.read_csv(paths["train"])
 test_df = pd.read_csv(paths["test"])
 print(train_df.shape, test_df.shape, list(train_df.columns))
@@ -129,7 +139,7 @@ print(json.dumps(stats, indent=2))
 code(r'''
 # Token lengths with the student tokenizer (to see how much 256-token truncation removes)
 from transformers import AutoTokenizer
-tok = AutoTokenizer.from_pretrained(STUDENT)
+tok = AutoTokenizer.from_pretrained(STUDENT, revision=STUDENT_REV)
 def n_tokens(texts):
     return [len(x) for x in tok(list(texts), add_special_tokens=False)["input_ids"]]
 cv_len = dict(zip(cv_texts.keys(), n_tokens(cv_texts.values())))
@@ -209,21 +219,21 @@ code(r'''
 from transformers import AutoModelForSequenceClassification
 from torch.utils.data import TensorDataset, DataLoader
 from transformers import AutoTokenizer
-tok = AutoTokenizer.from_pretrained(STUDENT)
+tok = AutoTokenizer.from_pretrained(STUDENT, revision=STUDENT_REV)
 
 def new_model(seed, dropout=None):
     set_seed(seed)                       # makes the new classifier head identical for M0 and (later) M1
     kw = {} if dropout is None else {"hidden_dropout_prob": dropout, "attention_probs_dropout_prob": dropout}
-    return AutoModelForSequenceClassification.from_pretrained(STUDENT, num_labels=3, attn_implementation="eager", **kw)
+    return AutoModelForSequenceClassification.from_pretrained(STUDENT, revision=STUDENT_REV, num_labels=3, attn_implementation="eager", **kw)
 
 import gc
 for name in ("Xtr", "Xva", "vec", "logreg", "cv_texts", "job_texts", "cv_len", "job_len"):
     globals().pop(name, None)           # free memory from earlier sections
 gc.collect()
 
-def encode(df, chunk=256, max_chars=6000):
-    """Tokenise in small chunks to keep RAM low. Texts are cut to 6,000 characters first;
-    only about the first 1,300 characters of each text can survive 256-token truncation."""
+def encode(df, chunk=256, max_chars=MAX_CHARS):
+    """Tokenise in small chunks to keep RAM low. Texts are cut to MAX_CHARS characters first
+    (only to save memory; the check below shows whether this changes any token IDs)."""
     ids, am, tt = [], [], []
     cvs = [t[:max_chars] for t in df.resume_text]; jobs = [t[:max_chars] for t in df.job_description_text]
     for i in range(0, len(cvs), chunk):
@@ -235,6 +245,19 @@ def encode(df, chunk=256, max_chars=6000):
 
 train_ds, val_ds = encode(tr), encode(va)     # the test set is NOT encoded in this notebook
 print(len(train_ds), len(val_ds))
+
+# Check: does the character cut change the model input? Compare with tokenising the FULL texts.
+def pretrim_changes(df, ds, chunk=128):
+    changed = 0
+    for i in range(0, len(df), chunk):
+        part = df.iloc[i:i + chunk]
+        full = tok(list(part.resume_text), list(part.job_description_text), truncation="longest_first",
+                   max_length=MAX_LEN, padding="max_length", return_tensors="pt")["input_ids"]
+        changed += int((full != ds.tensors[0][i:i + chunk]).any(dim=1).sum())
+    return changed
+pretrim_check = {"max_chars": MAX_CHARS, "pairs_checked": len(tr) + len(va),
+                 "pairs_with_different_token_ids": pretrim_changes(tr, train_ds) + pretrim_changes(va, val_ds)}
+print("Character-cut check:", pretrim_check)
 
 m = new_model(SEED).eval()
 blocks = {"embeddings": m.bert.embeddings, "encoder.layer.0": m.bert.encoder.layer[0],
@@ -289,7 +312,8 @@ overfit = {"batch_size": 16, "steps": 300, "lr": 1e-3, "first_loss": overfit_los
 print(overfit)
 plt.figure(figsize=(5, 3)); plt.plot(overfit_losses); plt.yscale("log"); plt.xlabel("step"); plt.ylabel("training loss")
 plt.title("Overfit one batch (16 pairs)"); plt.tight_layout(); plt.savefig(f"{OUT}/figures/overfit_one_batch.png", dpi=200); plt.show()
-del probe
+del probe, opt, b; gc.collect()
+if DEVICE == "cuda": torch.cuda.empty_cache()
 ''')
 
 md("## 7. Milestone 2 — train M0 (learning-rate search on validation, then 2 extra seeds)")
@@ -315,7 +339,9 @@ def train_m0(lr, seed):
     sch = get_linear_schedule_with_warmup(opt, int(0.1 * total_steps), total_steps)
     hist = {"step": [], "train_loss": [], "val_loss": [], "val_macro_f1": [], "epoch_end_steps": []}
     best, best_state, step, running = {"macro_f1": -1.0}, None, 0, []
-    if DEVICE == "cuda": torch.cuda.reset_peak_memory_stats()
+    if DEVICE == "cuda":
+        torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats()
+        gpu_before = torch.cuda.memory_allocated() / 2**20   # only this run's model should be on the GPU now
     t0 = time.time()
     for epoch in range(EPOCHS):
         model.train()
@@ -334,26 +360,30 @@ def train_m0(lr, seed):
         hist["epoch_end_steps"].append(step)
     info = {"lr": lr, "seed": seed, "best": best, "history": hist, "steps": total_steps,
             "train_time_s": time.time() - t0,
-            "peak_gpu_mem_mib": torch.cuda.max_memory_allocated() / 2**20 if DEVICE == "cuda" else None}
+            "peak_gpu_mem_mib": torch.cuda.max_memory_allocated() / 2**20 if DEVICE == "cuda" else None,
+            "gpu_mem_before_run_mib": gpu_before if DEVICE == "cuda" else None}
     model.load_state_dict(best_state)
     return model, info
 
 runs, models = [], {}
 for lr in LRS:
     model, info = train_m0(lr, SEED)
-    runs.append(info); models[lr] = model
+    runs.append(info); models[lr] = model.cpu()     # move off the GPU so the next run's memory is measured alone
+    del model; gc.collect()
     print(f"lr={lr:g}: best val macro-F1 {info['best']['macro_f1']:.2f} (acc {info['best']['accuracy']:.2f}, "
           f"step {info['best']['step']}), {info['train_time_s']:.0f}s")
 best_run = max(runs, key=lambda r: (r["best"]["macro_f1"], -r["best"]["loss"]))
 BEST_LR = best_run["lr"]
-m0 = models[BEST_LR]
+m0 = models[BEST_LR].to(DEVICE)
 print("Selected learning rate (validation only):", BEST_LR)
 ''')
 
 code(r'''
 seed_runs = [best_run]
 for s in EXTRA_SEEDS:
-    _, info = train_m0(BEST_LR, s)
+    m0 = m0.cpu()
+    _m, info = train_m0(BEST_LR, s); del _m; gc.collect()
+    m0 = m0.to(DEVICE)
     seed_runs.append(info)
     print(f"seed {s}: val macro-F1 {info['best']['macro_f1']:.2f}")
 f1s = [r["best"]["macro_f1"] for r in seed_runs]; accs = [r["best"]["accuracy"] for r in seed_runs]
@@ -399,6 +429,7 @@ size_bytes = os.path.getsize("private/m0_best.pt")
 ex = va.iloc[0]
 json.dump({"resume": ex.resume_text, "job": ex.job_description_text}, open("private/example.json", "w"))
 subprocess.run([sys.executable, "bench_cpu.py", "--weights", "private/m0_best.pt",
+                "--revision", STUDENT_REV, "--max_chars", str(MAX_CHARS),
                 "--example", "private/example.json", "--out", f"{OUT}/results/m0_cpu_bench.json"], check=True)
 bench = json.load(open(f"{OUT}/results/m0_cpu_bench.json"))
 print("Serialized state_dict:", size_bytes, "bytes")
@@ -412,7 +443,7 @@ def tex_escape(s):
     return s
 
 results = {"env": ENV, "references": ref, "overfit": overfit, "lr_search": [{k: r[k] for k in ("lr", "best", "train_time_s", "steps", "peak_gpu_mem_mib")} for r in runs],
-           "selected_lr": BEST_LR, "seeds": seed_summary, "val_report": report, "val_confusion": cm.tolist(),
+           "selected_lr": BEST_LR, "seeds": seed_summary, "pretrim_check": pretrim_check, "val_report": report, "val_confusion": cm.tolist(),
            "cost": {**cost_static, "serialized_bytes": size_bytes, "cpu_bench": bench},
            "best_run_history": best_run["history"], "note": "Validation results only; the test set was not evaluated."}
 json.dump(results, open(f"{OUT}/results/m0_baseline.json", "w"), indent=2, default=float)
@@ -454,6 +485,8 @@ macros = {
   "MzeroPeakGPU": f'{best_run["peak_gpu_mem_mib"]:.0f}' if best_run["peak_gpu_mem_mib"] else "n/a",
   "EnvGPU": tex_escape(ENV["gpu"]), "EnvCPU": tex_escape(ENV["cpu"]), "EnvTorch": tex_escape(ENV["torch"]),
   "EnvTransformers": tex_escape(ENV["transformers"]),
+  "PretrimDiff": pretrim_check["pairs_with_different_token_ids"], "PretrimChecked": f'{pretrim_check["pairs_checked"]:,}',
+  "StudentRev": ENV["student_revision"][:7],
 }
 with open(f"{OUT}/tex/report_numbers.tex", "w") as f:
     f.write("% Auto-generated by HireMind_M0_Baseline.ipynb - do not edit by hand\n")
