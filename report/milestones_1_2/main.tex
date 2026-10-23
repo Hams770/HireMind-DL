@@ -152,7 +152,7 @@ Pairs longer than 256 tokens & \TruncPct\% \\
 (4)~training rows whose job is a near-duplicate of a test job are removed (\NRemovedNearDup\ rows);
 (5)~the official test file is kept as the test set;
 (6)~validation is one fold of a stratified group 5-fold split of the cleaned training file (groups = job, stratified by label, seed 42).
-Text is tokenised as \texttt{[CLS] CV [SEP] job [SEP]}, truncated longest-first to 256 tokens and padded. Every pair is longer than this limit (median \TokPairMedian\ word-pieces: CV median 1,043, job 422), so the model sees roughly the first 125 tokens of each text; this is a known limitation shared by all three models. The exact row IDs of each split are saved in \texttt{splits/splits.csv}. The test set is only for the final evaluation.
+Text is tokenised as \texttt{[CLS] CV [SEP] job [SEP]}, truncated longest-first to 256 tokens and padded. Every pair is longer than this limit: the median pair has \TokPairMedian\ word-pieces including the three special tokens (computed over all pairs; the medians over unique texts are 1,043 for CVs and 422 for job descriptions, and a median of sums need not equal the sum of medians). Longest-first truncation shortens the longer text first, so in a typical pair the model keeps about the first 125 tokens of each text. This is a known limitation shared by all three models; how many tokens of each side survive per pair, and whether decisive information sits in the removed tail, still has to be measured. The exact row IDs of each split are saved in \texttt{splits/splits.csv}. The test set is only for the final evaluation.
 
 \begin{table}[t]
 \centering\small
@@ -176,7 +176,7 @@ Test & \NTest & \NTestJobs & \NTestNo & \NTestPot & \NTestGood \\
 \subsection{M0 architecture}
 Figure~\ref{fig:arch} shows M0. \textbf{Input:} a CV and a job description, tokenised into one sequence of 256 word-pieces with segment IDs 0 (CV) and 1 (job). \textbf{Embeddings:} each token gets a 128-dimensional vector (word + position + segment), normalised with LayerNorm. \textbf{Encoder:} two Transformer layers; in each, two self-attention heads let every CV token attend to every job token and vice versa, followed by a feed-forward network (128$\to$512$\to$128, GELU), with residual connections and LayerNorm. \textbf{Output:} the final \texttt{[CLS]} vector passes through the pooler (128$\to$128, tanh) and a new Linear layer (128$\to$3); softmax gives the three class probabilities.
 
-\textbf{Why it suits the task.} Fit depends on matching requirements in the job to evidence in the CV. A cross-encoder lets attention compare the two texts token by token, which bag-of-words features cannot do. BERT-Tiny keeps this mechanism at 4.4M parameters, small enough for CPU inference, and is the compact student released by \citet{turc}. We use its \textbf{pretrained} weights; only the classifier head is new.
+\textbf{Why it suits the task.} Fit depends on matching requirements in the job to evidence in the CV. In a cross-encoder, every CV token can attend to every job token from the first layer, which bag-of-words features cannot do; whether the model actually learns useful matches is an empirical question, and attention weights are not themselves relevance scores. BERT-Tiny keeps this mechanism at 4.4M parameters, small enough for CPU inference, and is the compact student released by \citet{turc}. We use its \textbf{pretrained} weights; only the classifier head is new.
 
 \begin{figure*}[t]
 \centering
@@ -185,7 +185,7 @@ Figure~\ref{fig:arch} shows M0. \textbf{Input:} a CV and a job description, toke
 \label{fig:arch}
 \end{figure*}
 
-\textbf{Parameters and MACs.} Table~\ref{tab:cost} gives exact parameter counts and MACs for one pair of 256 tokens. Per layer, the Q/K/V/O projections cost $4LH^2$, the attention scores and weighted sum $2L^2H$, and the feed-forward network $2LHI$ MACs ($L{=}256$, $H{=}128$, $I{=}512$), i.e.\ 67.1M per layer. The embeddings hold 90.6\% of the parameters but cost almost no computation, which is why quantizing them matters for storage but not for speed. The notebook re-measures MACs with PyTorch's \texttt{FlopCounterMode}: \MzeroMACsM\,M. For comparison, a BERT-base teacher needs about 22.95G MACs per pair, 171$\times$ more.
+\textbf{Parameters and MACs.} Table~\ref{tab:cost} gives exact parameter counts and MACs for one pair of 256 tokens. Per layer, the Q/K/V/O projections cost $4LH^2$, the attention scores and weighted sum $2L^2H$, and the feed-forward network $2LHI$ MACs ($L{=}256$, $H{=}128$, $I{=}512$), i.e.\ 67.1M per layer. By convention, embedding look-ups count as 0 MACs because they gather rows instead of multiplying matrices; they still cost memory access, and softmax, LayerNorm and GELU are not counted as MACs either. So the embeddings hold 90.6\% of the parameters but almost none of the counted computation: quantizing them should mainly reduce storage, and its effect on latency must be measured. The notebook re-measures MACs with PyTorch's \texttt{FlopCounterMode}: \MzeroMACsM\,M. For comparison, a BERT-base teacher needs about 22.95G MACs per pair, 171$\times$ more.
 
 \begin{table}[t]
 \centering\small
@@ -269,7 +269,7 @@ where $z_T, z_S$ are teacher and student logits and $\sigma$ is softmax. The tea
 
 \textbf{Why it reduces cost.} Storing a weight in 1 byte instead of 4 shrinks the 90.6\% of parameters in the embeddings about fourfold; we therefore expect M2's saved size to be well below 40\% of M1's (our H2 target), with per-row scale metadata and FP32 LayerNorms as the remainder. INT8 matrix multiplication can also speed up the Linear layers, but for a model this small the conversion overhead may cancel the gain, so latency is measured, not assumed. MAC counts do not change.
 
-\textbf{Possible quality loss.} Rounding errors in rare-word embeddings and in Linear weights. Dynamic quantization computes activation ranges per input, which avoids the fixed-range outlier problem reported by \citet{bondarenko} for static post-training quantization, but a small model has little redundancy to absorb errors.
+\textbf{Possible quality loss.} Rounding errors in rare-word embeddings and in Linear weights; whether a distilled model is more or less sensitive to them is a hypothesis that E4a and E4c test, using per-example prediction changes and class-wise confusion changes against the same FP32 checkpoint. Dynamic quantization computes activation ranges per input, which avoids the fixed-range outlier problem reported by \citet{bondarenko} for static post-training quantization, but a small model has little redundancy to absorb errors.
 
 \subsection{Experimental plan}
 \begin{table}[t]
@@ -283,7 +283,7 @@ E2 & M2 vs.\ M1 & How much storage is saved and what quality is lost? (H2: $S_2\
 E3 & M2 vs.\ M0 & Is the gain kept? (H2: $F_2-F_0\geq0.5(F_1-F_0)$) \\
 E4a & M1 + Linear-only INT8 vs.\ embeddings-only vs.\ both & Which quantized component explains the size saving and the quality loss? \\
 E4b & M1 with $T{=}1$ vs.\ selected $T$ & Does softening the teacher's probabilities matter? \\
-E4c & M0 + same quantization & Is a distilled model more or less robust to quantization than M0? (optional) \\
+E4c & M0 + same quantization & Is a distilled model more or less robust to quantization than M0? Compared through each model's paired drop from its own FP32 checkpoint across matched seeds (optional) \\
 \bottomrule
 \end{tabularx}
 \caption{Planned experiments. $F_i$: mean test macro-F1 over three seeds; $S_i$: saved size.}
