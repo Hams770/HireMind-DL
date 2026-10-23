@@ -34,7 +34,8 @@ Rawan Khojah · Hams Aljohani — CS4085 Deep Learning, Effat University
 
 md("## 0. Setup")
 code("""
-!pip -q install -U "transformers>=4.40" "datasets>=2.19" huggingface_hub scikit-learn matplotlib
+# Colab already has torch, transformers, scikit-learn and matplotlib; nothing is upgraded, so no restart is needed.
+!pip -q install huggingface_hub
 """)
 
 code("%%writefile data_prep.py\n" + (ROOT / "data_prep.py").read_text())
