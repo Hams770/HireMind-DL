@@ -57,7 +57,7 @@ EXPECTED_SHA = {"train": "b86fa488a21258015de1750633a9ac410f701ff96bf533f68978db
                 "test":  "f3c48f4cc3559bf192ebb9c241a30c601b5b8b3eee6f1656dd4d26dfd4b0887a"}
 STUDENT = "google/bert_uncased_L-2_H-128_A-2"
 STUDENT_REV = model_info(STUDENT).sha     # exact model/tokenizer commit; every load below uses it (M1/M2 reuse this value)
-MAX_CHARS = 6000                         # characters kept per text before tokenisation (same for training, checks and CPU benchmark)
+MAX_CHARS = None                         # no character cut: full texts are tokenised (a 6,000-char cut changed 65 of 6,155 inputs)
 MAX_LEN, BATCH, EPOCHS = 256, 16, 3
 LRS = [2e-5, 5e-5, 1e-4, 3e-4]          # M0 search space (4 trials, as planned)
 EXTRA_SEEDS = [43, 44]
@@ -68,6 +68,11 @@ for sub in ["figures", "results", "splits", "tex"]:
 os.makedirs("private", exist_ok=True)     # never zipped: contains raw text
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Deterministic GPU kernels so a rerun gives the same numbers (warn_only: never stops the run)
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+torch.use_deterministic_algorithms(True, warn_only=True)
+torch.backends.cudnn.benchmark = False
 
 def set_seed(s):
     random.seed(s); np.random.seed(s); torch.manual_seed(s); torch.cuda.manual_seed_all(s)
@@ -231,9 +236,8 @@ for name in ("Xtr", "Xva", "vec", "logreg", "cv_texts", "job_texts", "cv_len", "
     globals().pop(name, None)           # free memory from earlier sections
 gc.collect()
 
-def encode(df, chunk=256, max_chars=MAX_CHARS):
-    """Tokenise in small chunks to keep RAM low. Texts are cut to MAX_CHARS characters first
-    (only to save memory; the check below shows whether this changes any token IDs)."""
+def encode(df, chunk=128, max_chars=MAX_CHARS):
+    """Tokenise the full texts in small chunks to keep RAM low (no character cut when max_chars is None)."""
     ids, am, tt = [], [], []
     cvs = [t[:max_chars] for t in df.resume_text]; jobs = [t[:max_chars] for t in df.job_description_text]
     for i in range(0, len(cvs), chunk):
@@ -246,18 +250,6 @@ def encode(df, chunk=256, max_chars=MAX_CHARS):
 train_ds, val_ds = encode(tr), encode(va)     # the test set is NOT encoded in this notebook
 print(len(train_ds), len(val_ds))
 
-# Check: does the character cut change the model input? Compare with tokenising the FULL texts.
-def pretrim_changes(df, ds, chunk=128):
-    changed = 0
-    for i in range(0, len(df), chunk):
-        part = df.iloc[i:i + chunk]
-        full = tok(list(part.resume_text), list(part.job_description_text), truncation="longest_first",
-                   max_length=MAX_LEN, padding="max_length", return_tensors="pt")["input_ids"]
-        changed += int((full != ds.tensors[0][i:i + chunk]).any(dim=1).sum())
-    return changed
-pretrim_check = {"max_chars": MAX_CHARS, "pairs_checked": len(tr) + len(va),
-                 "pairs_with_different_token_ids": pretrim_changes(tr, train_ds) + pretrim_changes(va, val_ds)}
-print("Character-cut check:", pretrim_check)
 
 m = new_model(SEED).eval()
 blocks = {"embeddings": m.bert.embeddings, "encoder.layer.0": m.bert.encoder.layer[0],
@@ -429,7 +421,7 @@ size_bytes = os.path.getsize("private/m0_best.pt")
 ex = va.iloc[0]
 json.dump({"resume": ex.resume_text, "job": ex.job_description_text}, open("private/example.json", "w"))
 subprocess.run([sys.executable, "bench_cpu.py", "--weights", "private/m0_best.pt",
-                "--revision", STUDENT_REV, "--max_chars", str(MAX_CHARS),
+                "--revision", STUDENT_REV,
                 "--example", "private/example.json", "--out", f"{OUT}/results/m0_cpu_bench.json"], check=True)
 bench = json.load(open(f"{OUT}/results/m0_cpu_bench.json"))
 print("Serialized state_dict:", size_bytes, "bytes")
@@ -443,7 +435,7 @@ def tex_escape(s):
     return s
 
 results = {"env": ENV, "references": ref, "overfit": overfit, "lr_search": [{k: r[k] for k in ("lr", "best", "train_time_s", "steps", "peak_gpu_mem_mib")} for r in runs],
-           "selected_lr": BEST_LR, "seeds": seed_summary, "pretrim_check": pretrim_check, "val_report": report, "val_confusion": cm.tolist(),
+           "selected_lr": BEST_LR, "seeds": seed_summary, "val_report": report, "val_confusion": cm.tolist(),
            "cost": {**cost_static, "serialized_bytes": size_bytes, "cpu_bench": bench},
            "best_run_history": best_run["history"], "note": "Validation results only; the test set was not evaluated."}
 json.dump(results, open(f"{OUT}/results/m0_baseline.json", "w"), indent=2, default=float)
@@ -485,7 +477,6 @@ macros = {
   "MzeroPeakGPU": f'{best_run["peak_gpu_mem_mib"]:.0f}' if best_run["peak_gpu_mem_mib"] else "n/a",
   "EnvGPU": tex_escape(ENV["gpu"]), "EnvCPU": tex_escape(ENV["cpu"]), "EnvTorch": tex_escape(ENV["torch"]),
   "EnvTransformers": tex_escape(ENV["transformers"]),
-  "PretrimDiff": pretrim_check["pairs_with_different_token_ids"], "PretrimChecked": f'{pretrim_check["pairs_checked"]:,}',
   "StudentRev": ENV["student_revision"][:7],
 }
 with open(f"{OUT}/tex/report_numbers.tex", "w") as f:

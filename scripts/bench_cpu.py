@@ -45,7 +45,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--threads", type=int, default=1)
     ap.add_argument("--max_len", type=int, default=256)
-    ap.add_argument("--max_chars", type=int, default=6000)  # same character cut as training
+    ap.add_argument("--max_chars", type=int, default=None)  # None = full texts, as in training
     ap.add_argument("--revision", default=None)             # pinned model/tokenizer commit
     ap.add_argument("--warmup", type=int, default=30)
     ap.add_argument("--runs", type=int, default=200)
