@@ -171,19 +171,6 @@ tbl.plot.bar(stacked=True, rot=0, figsize=(6, 3.4)); plt.title("Final split size
 plt.tight_layout(); plt.savefig(f"{OUT}/figures/split_classes.png", dpi=200); plt.show()
 ''')
 
-code(r'''
-# Private label-audit sheet (90 training pairs, 30 per class, seed 42) for the planned manual check.
-# Contains raw text, so it goes to ./private and is NOT included in the outputs zip or GitHub.
-tr_rows = splits[splits.split == "train"]
-sample = (tr_rows.groupby("label").sample(n=30, random_state=SEED)
-          .sample(frac=1, random_state=SEED).reset_index(drop=True))
-sample.insert(0, "audit_id", range(1, len(sample) + 1))
-sheet = sample[["audit_id", "resume_text", "job_description_text"]].assign(rawan_label="", hams_label="")
-sheet.to_csv("private/label_audit_sheet.csv", index=False)               # labels hidden from annotators
-sample[["audit_id", "row_uid", "label"]].to_csv("private/label_audit_key.csv", index=False)
-print("Saved private/label_audit_sheet.csv and private/label_audit_key.csv")
-''')
-
 md("## 4. Simple references on validation (majority class, TF-IDF + logistic regression)")
 code(r'''
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -481,7 +468,7 @@ except Exception:
 md("""
 ### What to do with the outputs
 - Upload the **contents** of the zip to the GitHub repo (`figures/`, `results/`, `splits/`) and to Overleaf (`figures/` and `tex/`).
-- `private/label_audit_sheet.csv` is for the 90-pair manual label check: both of you label independently, without looking at `label_audit_key.csv`. **Do not upload these files.**
+- The `private/` folder holds the M0 checkpoint and one example pair used for timing. **Do not upload it.**
 """)
 
 nb = {"cells": cells, "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
