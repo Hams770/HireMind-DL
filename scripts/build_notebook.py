@@ -216,13 +216,23 @@ def new_model(seed, dropout=None):
     kw = {} if dropout is None else {"hidden_dropout_prob": dropout, "attention_probs_dropout_prob": dropout}
     return AutoModelForSequenceClassification.from_pretrained(STUDENT, num_labels=3, attn_implementation="eager", **kw)
 
-def encode(df):
-    enc = tok(list(df.resume_text), list(df.job_description_text), truncation="longest_first",
-              max_length=MAX_LEN, padding="max_length", return_tensors="pt")
-    return TensorDataset(enc["input_ids"], enc["attention_mask"], enc["token_type_ids"],
+import gc
+for name in ("Xtr", "Xva", "vec", "logreg", "cv_texts", "job_texts", "cv_len", "job_len"):
+    globals().pop(name, None)           # free memory from earlier sections
+gc.collect()
+
+def encode(df, chunk=256, max_chars=6000):
+    """Tokenise in small chunks to keep RAM low. Texts are cut to 6,000 characters first;
+    only about the first 1,300 characters of each text can survive 256-token truncation."""
+    ids, am, tt = [], [], []
+    cvs = [t[:max_chars] for t in df.resume_text]; jobs = [t[:max_chars] for t in df.job_description_text]
+    for i in range(0, len(cvs), chunk):
+        enc = tok(cvs[i:i + chunk], jobs[i:i + chunk], truncation="longest_first",
+                  max_length=MAX_LEN, padding="max_length", return_tensors="pt")
+        ids.append(enc["input_ids"]); am.append(enc["attention_mask"]); tt.append(enc["token_type_ids"])
+    return TensorDataset(torch.cat(ids), torch.cat(am), torch.cat(tt),
                          torch.tensor(df.label_id.values, dtype=torch.long))
 
-tr = splits[splits.split == "train"]; va = splits[splits.split == "validation"]
 train_ds, val_ds = encode(tr), encode(va)     # the test set is NOT encoded in this notebook
 print(len(train_ds), len(val_ds))
 
