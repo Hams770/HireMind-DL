@@ -1,0 +1,311 @@
+\documentclass[11pt]{article}
+\usepackage[final]{acl}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{array}
+
+% ---------------------------------------------------------------------------
+% Numbers produced by notebook/HireMind_M0_Baseline.ipynb.
+% Defaults below are placeholders; tex/report_numbers.tex (from the notebook) overrides them.
+% ---------------------------------------------------------------------------
+\newcommand{\RUN}{\textbf{[run notebook]}}
+\newcommand{\NRowsRaw}{8,000}\newcommand{\NTrainRaw}{6,241}\newcommand{\NTestRaw}{1,759}
+\newcommand{\NCVs}{643}\newcommand{\NJobs}{351}\newcommand{\NConflictPairs}{6}\newcommand{\NConflictRows}{12}
+\newcommand{\NCVOverlap}{476}\newcommand{\NJobOverlap}{0}
+\newcommand{\NNearDupJobPairs}{\RUN}\newcommand{\NNearDupJobCross}{\RUN}\newcommand{\NNearDupCVPairs}{\RUN}
+\newcommand{\NRemovedNearDup}{\RUN}
+\newcommand{\NTrain}{\RUN}\newcommand{\NVal}{\RUN}\newcommand{\NTest}{\RUN}
+\newcommand{\NTrainJobs}{\RUN}\newcommand{\NValJobs}{\RUN}\newcommand{\NTestJobs}{\RUN}
+\newcommand{\NTrainNo}{\RUN}\newcommand{\NTrainPot}{\RUN}\newcommand{\NTrainGood}{\RUN}
+\newcommand{\NValNo}{\RUN}\newcommand{\NValPot}{\RUN}\newcommand{\NValGood}{\RUN}
+\newcommand{\NTestNo}{\RUN}\newcommand{\NTestPot}{\RUN}\newcommand{\NTestGood}{\RUN}
+\newcommand{\TokPairMedian}{\RUN}\newcommand{\TokPairNinety}{\RUN}\newcommand{\TruncPct}{\RUN}
+\newcommand{\MajFone}{\RUN}\newcommand{\MajAcc}{\RUN}\newcommand{\TfidfFone}{\RUN}\newcommand{\TfidfAcc}{\RUN}
+\newcommand{\OverfitFirst}{\RUN}\newcommand{\OverfitFinal}{\RUN}\newcommand{\OverfitAcc}{\RUN}\newcommand{\OverfitPassed}{\RUN}
+\newcommand{\MzeroLR}{\RUN}\newcommand{\MzeroFone}{\RUN}\newcommand{\MzeroAcc}{\RUN}
+\newcommand{\MzeroBestStep}{\RUN}\newcommand{\MzeroSteps}{\RUN}
+\newcommand{\MzeroFoneMean}{\RUN}\newcommand{\MzeroFoneSD}{\RUN}\newcommand{\MzeroAccMean}{\RUN}\newcommand{\MzeroAccSD}{\RUN}
+\newcommand{\MzeroParams}{4,386,307}\newcommand{\MzeroParamsM}{4.39}
+\newcommand{\MzeroEmbParams}{3,972,864}\newcommand{\MzeroLayerParams}{198,272}
+\newcommand{\MzeroPoolerParams}{16,512}\newcommand{\MzeroClsParams}{387}\newcommand{\MzeroEmbShare}{90.6}
+\newcommand{\MzeroMACsM}{\RUN}\newcommand{\MzeroLayerMACsM}{\RUN}\newcommand{\MzeroMACsAnalyticM}{134.2}
+\newcommand{\MzeroSizeMB}{\RUN}\newcommand{\MzeroLatMed}{\RUN}\newcommand{\MzeroLatPninetyfive}{\RUN}
+\newcommand{\MzeroLatTokMed}{\RUN}\newcommand{\MzeroRSS}{\RUN}\newcommand{\MzeroRSSBase}{\RUN}
+\newcommand{\MzeroTrainTime}{\RUN}\newcommand{\MzeroPeakGPU}{\RUN}
+\newcommand{\EnvGPU}{\RUN}\newcommand{\EnvCPU}{\RUN}\newcommand{\EnvTorch}{\RUN}\newcommand{\EnvTransformers}{\RUN}
+\newcommand{\LRRows}{-- & -- & -- & -- & -- \\}
+\InputIfFileExists{tex/report_numbers.tex}{}{}
+
+\newcommand{\fig}[2]{\IfFileExists{#1}{\includegraphics[width=#2]{#1}}{\fbox{\parbox{#2}{\centering\vspace{1em}\RUN\\\texttt{\detokenize{#1}}\vspace{1em}}}}}
+
+\title{HireMind: Efficient CV--Job Fit Classification through Distillation and Quantization\\[4pt]
+\large Milestones 1 \& 2 --- Related Work, Dataset, Architecture, Baseline and Experimental Plan}
+\author{Rawan Khojah \quad Hams Aljohani\\Effat University\\CS4085 Deep Learning}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study whether a 4.4M-parameter BERT-Tiny classifier for CV--job fit (\emph{No Fit}, \emph{Potential Fit}, \emph{Good Fit}) improves when trained with knowledge distillation from a BERT-base teacher, and whether that improvement survives 8-bit post-training quantization that also covers the embedding table. This document covers Milestones~1 and~2: nine related papers, a dataset audit with a job-grouped split, the M0 architecture with parameter and MAC counts, a trained and checked M0 baseline, and the plan for M1, M2 and the ablations. The test set has not been used.
+\end{abstract}
+
+% ===========================================================================
+\section{Introduction}
+\textbf{Problem.} HireMind, our Senior project, is a recruitment platform that scores applicants against job postings. Scoring every CV--job pair with a large external language model is slow, costs money per request, and sends personal data to a third party. A small model that runs locally on a CPU could provide one piece of evidence for the scoring step; it does not replace skill verification or the recruiter's decision.
+
+\textbf{Why it matters.} Compact models are cheap to run but usually lose accuracy. Two standard remedies pull in opposite directions: knowledge distillation can make a small model more accurate, while quantization makes it cheaper but may cost accuracy. Whether a small accuracy gain from distillation survives quantization is what decides whether the extra training effort is worth it for deployment.
+
+\textbf{Research question.} \emph{Can teacher-guided training improve a compact CV--job fit classifier, and can post-training quantization reduce its storage while keeping that improvement?}
+
+We compare three models: \textbf{M0}, BERT-Tiny fine-tuned with cross-entropy; \textbf{M1}, the same student trained with distillation from a fine-tuned BERT-base teacher; and \textbf{M2}, M1 after post-training INT8 quantization of its Linear layers and 8-bit quantization of its embeddings.
+
+% ===========================================================================
+\section{Related Work}
+\textbf{Recruitment screening.} \citet{gan} build an LLM-agent pipeline for resume screening; their sentence classifier based on LLaMA2-7B reaches 87.73 F1 against 86.67 for BERT-Large. It shows the task can be automated but relies on very large models.
+
+\textbf{Architecture.} BERT \citep{bert} pretrains a bidirectional Transformer encoder that is fine-tuned per task; BERT-base reaches 84.6\% on MNLI-m. \citet{turc} release 24 compact BERT models, including BERT-Tiny (2 layers, hidden size 128, 4.4M parameters), and show that pretraining the student before distillation helps: a 6-layer student's GLUE development score rises from 82.8 to 84.4.
+
+\textbf{Distillation.} \citet{hinton} train a student on the teacher's temperature-softened probabilities; on MNIST, a distilled small network makes 74 errors versus 146 when trained on hard labels. DistilBERT \citep{distilbert} distils BERT during pretraining into a 6-layer model that is 40\% smaller and 60\% faster while keeping 97\% of its language understanding. TinyBERT \citep{tinybert} adds layer-wise distillation of attention and hidden states; its 4-layer model reaches 96.8\% of BERT-base on GLUE while being 7.5$\times$ smaller and 9.4$\times$ faster.
+
+\textbf{Quantization.} Q8BERT \citep{q8} applies 8-bit quantization-aware training to BERT's embeddings and Linear layers, keeping MRPC F1 at 89.56 versus 90.0 in FP32, while post-training dynamic quantization drops to 87.88. \citet{bondarenko} show why post-training quantization of BERT is hard: structured outliers in residual activations make naive W8A8 quantization fall from 83.06 to 71.03 GLUE points, which their per-embedding-group method restores to 82.45. TernaryBERT \citep{ternary} combines both ideas: it uses distillation \emph{during} quantization-aware training to reach 2-bit weights and embeddings, losing 1.3 GLUE points (78.2 to 76.9) while being 14.9$\times$ smaller.
+
+\begin{table*}[t]
+\centering\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.1cm}>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Paper} & \textbf{Main idea} & \textbf{Model} & \textbf{Dataset} & \textbf{Results} & \textbf{Limitations (for us)} \\
+\midrule
+\citet{gan} & LLM agents for resume screening: sentence classification, grading, decision & LLaMA2-7B/13B, GPT-3.5 & 1,000 IT resumes & 87.73 F1 (vs.\ 86.67 BERT-Large) on sentence classification & Very large models; different task; no cost analysis \\
+\citet{bert} & Bidirectional Transformer pretraining, then task fine-tuning & BERT-base / large & GLUE, SQuAD & MNLI-m 84.6\% (base) & General benchmarks; costly; 512-token limit \\
+\citet{turc} & Pretrain compact students, then distil & 24 compact BERTs incl.\ BERT-Tiny & GLUE, Amazon reviews & 6-layer: 82.8 $\to$ 84.4 GLUE dev & Tiny models not studied on matching tasks; no quantization \\
+\citet{hinton} & Train student on softened teacher probabilities & MLPs, speech DNNs & MNIST, speech & 146 $\to$ 74 MNIST errors & Not Transformers or text pairs \\
+\citet{distilbert} & Distil BERT during pretraining (triple loss) & 6-layer DistilBERT & GLUE, IMDb, SQuAD & 40\% smaller, 60\% faster, 97\% of BERT & Student still 66M params; no quantization \\
+\citet{tinybert} & Layer-wise (attention, hidden) distillation & 4-/6-layer TinyBERT & GLUE & 96.8\% of BERT-base, 7.5$\times$ smaller, 9.4$\times$ faster & Needs data augmentation and a two-stage pipeline \\
+\citet{q8} & 8-bit quantization-aware training of BERT & BERT-base / large & GLUE, SQuAD & MRPC F1 90.0 FP32, 89.56 QAT, 87.88 PTQ & Requires retraining; full-size BERT only \\
+\citet{bondarenko} & Explain and fix PTQ failures (activation outliers) & BERT-base & GLUE & W8A8 PTQ 71.03 $\to$ 82.45 (FP32 83.06) & Full-size BERT; no distillation \\
+\citet{ternary} & Distillation-aware 2-bit quantization & BERT-base & GLUE, SQuAD & 14.9$\times$ smaller; GLUE 78.2 $\to$ 76.9 & Quantization-aware training; distillation used to recover loss, not studied as a separate gain \\
+\bottomrule
+\end{tabularx}
+\caption{Comparison of the nine papers. Results are those reported by the authors on their own benchmarks.}
+\label{tab:papers}
+\end{table*}
+
+\subsection{Research gap}
+\textbf{What existing papers show.} Distillation helps compact BERT students \citep{turc,distilbert,tinybert}; 8-bit quantization can keep BERT accuracy, more easily with training \citep{q8} than post-training \citep{bondarenko}; and distillation can be used to recover the loss caused by quantization \citep{ternary}.
+
+\textbf{What is still unclear.} These studies use general benchmarks and mostly larger models. They do not separately measure whether a distillation gain obtained \emph{before} quantization survives \emph{post-training} 8-bit quantization when the embeddings---90.6\% of BERT-Tiny's weights---are quantized too, nor do they evaluate CV--job pair classification. We do not claim that this combination has never been studied; we claim it is insufficiently evaluated for this setting.
+
+\textbf{How our experiments answer it.} Matched comparisons M1 vs.\ M0 (does distillation help?), M2 vs.\ M1 (what does quantization cost?) and M2 vs.\ M0 (is the gain kept?), plus ablations that quantize the embeddings and the Linear layers separately.
+
+% ===========================================================================
+\section{Dataset}
+\textbf{Source and licence.} We use the resume--job-description fit dataset on Hugging Face\footnote{\url{https://huggingface.co/datasets/cnamuangtoun/resume-job-description-fit}}, pinned to revision \texttt{08978e2} and verified by SHA-256 file hashes. It has no dataset card and no licence; the instructor approved it for this course project. We do not redistribute CV text: only hashed IDs are stored in our repository. Its source and labelling method are undocumented, so all results are interpreted as agreement with these benchmark labels, not as hiring validity.
+
+\textbf{Size and classes.} Each row is a (CV, job description, label) triple. Table~\ref{tab:data} summarises the audit; Figure~\ref{fig:data} shows class counts and input lengths.
+
+\begin{table}[t]
+\centering\small
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xr@{}}
+\toprule
+Rows: total (train / test file) & \NRowsRaw\ (\NTrainRaw\,/\,\NTestRaw) \\
+Classes: No / Potential / Good Fit & 4,000 / 2,000 / 2,000 \\
+Unique CVs / job descriptions & \NCVs\ / \NJobs \\
+Pairs with conflicting labels (rows) & \NConflictPairs\ (\NConflictRows) \\
+Extra rows from exact duplicate pairs & 7 \\
+Empty fields & 0 \\
+CVs in both train and test files & \NCVOverlap \\
+Jobs in both train and test files & \NJobOverlap \\
+Near-duplicate job pairs, cos $\geq$ 0.95 (across files) & \NNearDupJobPairs\ (\NNearDupJobCross) \\
+Near-duplicate CV pairs, cos $\geq$ 0.95 & \NNearDupCVPairs \\
+Pair length, median / 90th pct.\ (tokens) & \TokPairMedian\,/\,\TokPairNinety \\
+Pairs longer than 256 tokens & \TruncPct\% \\
+\bottomrule
+\end{tabularx}
+\caption{Dataset audit before cleaning.}
+\label{tab:data}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\fig{figures/dataset_overview.png}{0.85\textwidth}
+\caption{Left: class counts in the original train and test files. Right: CV + job length in word-pieces; the red line is our 256-token limit.}
+\label{fig:data}
+\end{figure*}
+
+\textbf{Class imbalance.} \emph{No Fit} is half of the data and the other two classes a quarter each. This is moderate, so we keep the natural distribution and use macro-F1, which weights the three classes equally, as the main metric.
+
+\textbf{Duplicates and leakage.} The same CV is paired with many jobs, and the official files share \NCVOverlap\ CVs but no job descriptions. A row-level random split would therefore place the same job in training and evaluation. We split by \emph{job}, so every evaluation job is unseen; CVs can still recur, so our results measure generalisation to new jobs, not to new candidates. Near-duplicate job descriptions are merged into one group before splitting.
+
+\textbf{Preprocessing and splitting.} The policy was fixed before any model was trained:
+(1)~CV and job IDs are SHA-256 hashes of whitespace-normalised, lower-cased text;
+(2)~all rows of the six conflicting pairs are removed;
+(3)~exact duplicate pairs keep one copy, and a training copy of a pair that also appears in test is dropped;
+(4)~training rows whose job is a near-duplicate of a test job are removed (\NRemovedNearDup\ rows);
+(5)~the official test file is kept as the test set;
+(6)~validation is one fold of a stratified group 5-fold split of the cleaned training file (groups = job, stratified by label, seed 42).
+Text is tokenised as \texttt{[CLS] CV [SEP] job [SEP]}, truncated longest-first to 256 tokens and padded. The exact row IDs of each split are saved in \texttt{splits/splits.csv}. The test set is only for the final evaluation.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Split & Pairs & Jobs & No & Pot. & Good \\
+\midrule
+Train & \NTrain & \NTrainJobs & \NTrainNo & \NTrainPot & \NTrainGood \\
+Validation & \NVal & \NValJobs & \NValNo & \NValPot & \NValGood \\
+Test & \NTest & \NTestJobs & \NTestNo & \NTestPot & \NTestGood \\
+\bottomrule
+\end{tabular}
+\caption{Final splits. No job group appears in more than one split.}
+\label{tab:splits}
+\end{table}
+
+\textbf{Label check.} Because the labelling method is unknown, both authors will independently label 90 training pairs (30 per class, seed 42) with a written rubric, without seeing the dataset labels, and report Cohen's $\kappa$ and agreement with the dataset. The sheet is generated by our notebook and kept private.
+
+% ===========================================================================
+\section{Methodology}
+\subsection{M0 architecture}
+Figure~\ref{fig:arch} shows M0. \textbf{Input:} a CV and a job description, tokenised into one sequence of 256 word-pieces with segment IDs 0 (CV) and 1 (job). \textbf{Embeddings:} each token gets a 128-dimensional vector (word + position + segment), normalised with LayerNorm. \textbf{Encoder:} two Transformer layers; in each, two self-attention heads let every CV token attend to every job token and vice versa, followed by a feed-forward network (128$\to$512$\to$128, GELU), with residual connections and LayerNorm. \textbf{Output:} the final \texttt{[CLS]} vector passes through the pooler (128$\to$128, tanh) and a new Linear layer (128$\to$3); softmax gives the three class probabilities.
+
+\textbf{Why it suits the task.} Fit depends on matching requirements in the job to evidence in the CV. A cross-encoder lets attention compare the two texts token by token, which bag-of-words features cannot do. BERT-Tiny keeps this mechanism at 4.4M parameters, small enough for CPU inference, and is the compact student released by \citet{turc}. We use its \textbf{pretrained} weights; only the classifier head is new.
+
+\begin{figure*}[t]
+\centering
+\fig{figures/m0_architecture.pdf}{0.62\textwidth}
+\caption{M0 with parameters and MACs per block. Dashed purple blocks are the modules quantized in M2; the red box shows the extra distillation loss used to train M1.}
+\label{fig:arch}
+\end{figure*}
+
+\textbf{Parameters and MACs.} Table~\ref{tab:cost} gives exact parameter counts and MACs for one pair of 256 tokens. Per layer, the Q/K/V/O projections cost $4LH^2$, the attention scores and weighted sum $2L^2H$, and the feed-forward network $2LHI$ MACs ($L{=}256$, $H{=}128$, $I{=}512$), i.e.\ 67.1M per layer. The embeddings hold 90.6\% of the parameters but cost almost no computation, which is why quantizing them matters for storage but not for speed. The notebook re-measures MACs with PyTorch's \texttt{FlopCounterMode}: \MzeroMACsM\,M. For comparison, a BERT-base teacher needs about 22.95G MACs per pair, 171$\times$ more.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Block & Parameters & MACs \\
+\midrule
+Embeddings & 3,972,864 & $\approx$0 \\
+Encoder layer 1 & 198,272 & 67.1M \\
+Encoder layer 2 & 198,272 & 67.1M \\
+Pooler & 16,512 & 16.4K \\
+Classifier & 387 & 0.4K \\
+\midrule
+Total & 4,386,307 & 134.2M \\
+\bottomrule
+\end{tabular}
+\caption{M0 cost per block (one CV--job pair, 256 tokens).}
+\label{tab:cost}
+\end{table}
+
+\subsection{Baseline implementation and results}
+\textbf{Training setup.} AdamW (weight decay 0.01), batch size 16, 3 epochs (\MzeroSteps\ updates), linear schedule with 10\% warm-up, gradient clipping at 1.0, full FP32 precision. We tried four learning rates $\{2\cdot10^{-5}, 5\cdot10^{-5}, 10^{-4}, 3\cdot10^{-4}\}$ with seed 42, evaluated on validation every 100 steps, and kept the checkpoint with the best validation macro-F1. The selected learning rate was then rerun with seeds 43 and 44.
+
+\textbf{Overfit-one-batch test.} With dropout disabled, M0 was trained on one fixed batch of 16 pairs for 300 steps (learning rate $10^{-3}$). The loss fell from \OverfitFirst\ to \OverfitFinal\ and training accuracy reached \OverfitAcc\%, so the test \OverfitPassed\ (criterion: loss $<$ 0.05 and 100\% accuracy).
+
+\textbf{Results.} Table~\ref{tab:base} compares M0 with two simple references fitted on the same training split. Figure~\ref{fig:curves} shows the loss curves.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Model (validation) & Macro-F1 & Accuracy \\
+\midrule
+Majority class & \MajFone & \MajAcc \\
+TF-IDF + logistic regression & \TfidfFone & \TfidfAcc \\
+M0, seed 42 (lr \MzeroLR) & \MzeroFone & \MzeroAcc \\
+M0, 3 seeds (mean $\pm$ s.d.) & \MzeroFoneMean\ $\pm$ \MzeroFoneSD & \MzeroAccMean\ $\pm$ \MzeroAccSD \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+LR & Macro-F1 & Acc. & Val.\ loss & Best step \\
+\midrule
+\LRRows
+\bottomrule
+\end{tabular}
+\caption{Top: M0 against simple references. Bottom: learning-rate search (seed 42). All numbers are on the validation split, in \%.}
+\label{tab:base}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\fig{figures/m0_curves.png}{0.8\textwidth}\\[4pt]
+\fig{figures/overfit_one_batch.png}{0.3\textwidth}\hspace{1em}
+\fig{figures/m0_confusion_val.png}{0.27\textwidth}\hspace{1em}
+\fig{figures/m0_lr_search.png}{0.3\textwidth}
+\caption{Top: M0 training and validation loss and validation macro-F1 (dotted lines mark epochs). Bottom: overfit-one-batch test, validation confusion matrix, learning-rate search.}
+\label{fig:curves}
+\end{figure*}
+
+\textbf{Computational cost.} Saved weights (\texttt{state\_dict}): \MzeroSizeMB\,MiB. CPU latency (\EnvCPU, 1 thread, batch 1, 256 tokens, 30 warm-up and 200 timed runs): median \MzeroLatMed\,ms, p95 \MzeroLatPninetyfive\,ms for the model alone and \MzeroLatTokMed\,ms including tokenisation. Peak process memory: \MzeroRSS\,MiB (\MzeroRSSBase\,MiB after imports only). Training the selected run took \MzeroTrainTime\,s on \EnvGPU\ with a peak GPU memory of \MzeroPeakGPU\,MiB.
+
+\subsection{Proposed M1: distillation (Part 1)}
+\textbf{Change.} Same student, same initialisation, same data and update budget as M0, but trained with
+\begin{equation}
+L=0.5\,L_{CE}+0.5\,T^2\,\mathrm{KL}\big(\sigma(z_T/T)\,\Vert\,\sigma(z_S/T)\big),
+\end{equation}
+where $z_T, z_S$ are teacher and student logits and $\sigma$ is softmax. The teacher is \texttt{bert-base-uncased} with a three-class head, fine-tuned on the same training split with the same input format, its learning rate ($2\cdot10^{-5}$ or $5\cdot10^{-5}$) and checkpoint chosen on validation macro-F1. Its logits for the training pairs are computed once in evaluation mode and cached, so every M1 run uses the same targets. M1 tries learning rates $\{5\cdot10^{-5}, 10^{-4}\} \times T\in\{2,4\}$, four trials, the same number as M0.
+
+\textbf{Why it should help.} Hard labels say only which class is right. The teacher's softened probabilities also say how close the other classes are---for example that a pair is \emph{Good Fit} but close to \emph{Potential Fit}. This extra signal acts as a regulariser for a small model trained on limited data, which is the setting where \citet{hinton} and \citet{turc} report gains. It may fail if the teacher is not clearly better than M0 on validation, which we will check before running M1.
+
+\subsection{Proposed M2: quantization (Part 2)}
+\textbf{Change.} A CPU copy of the selected M1 converted with PyTorch \texttt{quantize\_dynamic}: Linear layers use dynamic INT8 (weights stored in 8 bits, activation scales computed per input at run time) and embeddings use 8-bit weight-only quantization with per-row scales; LayerNorm stays FP32. No retraining.
+
+\textbf{Why it reduces cost.} Storing a weight in 1 byte instead of 4 shrinks the 90.6\% of parameters in the embeddings about fourfold; we therefore expect M2's saved size to be well below 40\% of M1's (our H2 target), with per-row scale metadata and FP32 LayerNorms as the remainder. INT8 matrix multiplication can also speed up the Linear layers, but for a model this small the conversion overhead may cancel the gain, so latency is measured, not assumed. MAC counts do not change.
+
+\textbf{Possible quality loss.} Rounding errors in rare-word embeddings and in Linear weights. Dynamic quantization computes activation ranges per input, which avoids the fixed-range outlier problem reported by \citet{bondarenko} for static post-training quantization, but a small model has little redundancy to absorb errors.
+
+\subsection{Experimental plan}
+\begin{table}[t]
+\centering\small
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}p{1.6cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+& Comparison & Question \\
+\midrule
+E1 & M1 vs.\ M0 & Does distillation help? (H1: $F_1-F_0\geq1.0$) \\
+E2 & M2 vs.\ M1 & How much storage is saved and what quality is lost? (H2: $S_2\leq0.40S_1$, $F_1-F_2\leq1.0$) \\
+E3 & M2 vs.\ M0 & Is the gain kept? (H2: $F_2-F_0\geq0.5(F_1-F_0)$) \\
+E4a & M1 + Linear-only INT8 vs.\ embeddings-only vs.\ both & Which quantized component explains the size saving and the quality loss? \\
+E4b & M1 with $T{=}1$ vs.\ selected $T$ & Does softening the teacher's probabilities matter? \\
+E4c & M0 + same quantization & Is a distilled model more or less robust to quantization than M0? (optional) \\
+\bottomrule
+\end{tabularx}
+\caption{Planned experiments. $F_i$: mean test macro-F1 over three seeds; $S_i$: saved size.}
+\label{tab:exp}
+\end{table}
+
+Table~\ref{tab:exp} lists the experiments. \textbf{Fairness:} M0 and M1 share the split, tokenisation, 256-token limit, pretrained initialisation and head seed, optimiser, update budget and number of tuning trials; only the loss differs. M2 differs from M1 only by quantization. \textbf{Repeats:} the selected settings run with seeds 42, 43 and 44; we report each paired difference and mean $\pm$ s.d., without significance claims. \textbf{Test set:} all choices are frozen on validation before the test set is evaluated once. If embedding quantization fails, H2 is reported as untestable for the planned M2 and the Linear-only variant as exploratory.
+
+\subsection{Metrics}
+\textbf{Quality:} macro-F1 (main), accuracy, per-class precision/recall/F1 and confusion matrices. \textbf{Cost:} parameter count, saved \texttt{state\_dict} size (main compression measure, tokenizer and config excluded), MACs on the model graph, CPU latency (model-only and with tokenisation; median and p95) and peak process memory, all measured in a fresh process under the conditions above. We also record teacher and student training time.
+
+\subsection{Environment and reproducibility}
+Training runs on Google Colab (\EnvGPU), CPU measurements on \EnvCPU, with PyTorch \EnvTorch\ and Transformers \EnvTransformers. Seeds are fixed (Python, NumPy, PyTorch, data loader), the dataset revision and file hashes are pinned, the split IDs are saved, and the whole pipeline is one notebook in our repository\footnote{\url{https://github.com/Hams770/HireMind-DL}}.
+
+\textbf{Next steps.} Fine-tune and check the teacher, run M1 (E1, E4b), quantize (E2, E3, E4a), and complete the label check.
+
+\section*{AI use}
+ChatGPT and Claude assisted with literature search and summaries, code for the data audit, notebook and figures, and drafting. The authors checked the content, ran the experiments and are responsible for this document.
+
+\begin{thebibliography}{9}
+\bibitem[Bondarenko et al.(2021)]{bondarenko} Yelysei Bondarenko, Markus Nagel, and Tijmen Blankevoort. 2021. Understanding and Overcoming the Challenges of Efficient Transformer Quantization. \emph{EMNLP}, pages 7947--7969. DOI: 10.18653/v1/2021.emnlp-main.627.
+\bibitem[Devlin et al.(2019)]{bert} Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. \emph{NAACL-HLT}, pages 4171--4186.
+\bibitem[Gan et al.(2024)]{gan} Chengguang Gan, Qinghao Zhang, and Tatsunori Mori. 2024. Application of LLM Agents in Recruitment: A Novel Framework for Automated Resume Screening. \emph{Journal of Information Processing}, 32:881--893. DOI: 10.2197/ipsjjip.32.881.
+\bibitem[Hinton et al.(2015)]{hinton} Geoffrey Hinton, Oriol Vinyals, and Jeff Dean. 2015. Distilling the Knowledge in a Neural Network. \emph{arXiv:1503.02531}.
+\bibitem[Jiao et al.(2020)]{tinybert} Xiaoqi Jiao, Yichun Yin, Lifeng Shang, Xin Jiang, Xiao Chen, Linlin Li, Fang Wang, and Qun Liu. 2020. TinyBERT: Distilling BERT for Natural Language Understanding. \emph{Findings of EMNLP}, pages 4163--4174. DOI: 10.18653/v1/2020.findings-emnlp.372.
+\bibitem[Sanh et al.(2019)]{distilbert} Victor Sanh, Lysandre Debut, Julien Chaumond, and Thomas Wolf. 2019. DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter. \emph{EMC$^2$ Workshop at NeurIPS}. arXiv:1910.01108.
+\bibitem[Turc et al.(2019)]{turc} Iulia Turc, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. Well-Read Students Learn Better: On the Importance of Pre-training Compact Models. \emph{arXiv:1908.08962}.
+\bibitem[Zafrir et al.(2019)]{q8} Ofir Zafrir, Guy Boudoukh, Peter Izsak, and Moshe Wasserblat. 2019. Q8BERT: Quantized 8Bit BERT. \emph{EMC$^2$ Workshop at NeurIPS}. DOI: 10.1109/EMC2-NIPS53020.2019.00016.
+\bibitem[Zhang et al.(2020)]{ternary} Wei Zhang, Lu Hou, Yichun Yin, Lifeng Shang, Xiao Chen, Xin Jiang, and Qun Liu. 2020. TernaryBERT: Distillation-aware Ultra-low Bit BERT. \emph{EMNLP}, pages 509--521. DOI: 10.18653/v1/2020.emnlp-main.37.
+\end{thebibliography}
+\end{document}

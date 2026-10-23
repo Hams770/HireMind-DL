@@ -15,3 +15,6 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 .DS_Store
+
+# Notebook private outputs (raw text, checkpoints)
+private/

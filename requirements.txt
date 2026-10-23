@@ -1,0 +1,9 @@
+# Assignment 2 notebook (Google Colab already provides most of these)
+torch>=2.1
+transformers>=4.40
+datasets>=2.19
+huggingface_hub
+scikit-learn
+pandas
+numpy
+matplotlib
