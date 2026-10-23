@@ -4,16 +4,18 @@
   "seq_len": 256,
   "warmup": 30,
   "runs": 200,
+  "max_chars": null,
+  "revision": "30b0a37ccaaa32f332884b96992754e246e48c5f",
   "model_only": {
-    "median_ms": 5.439432000059696,
-    "p95_ms": 8.785579999994297
+    "median_ms": 5.914109999991979,
+    "p95_ms": 6.765000000029886
   },
   "tokenization_inclusive": {
-    "median_ms": 24.184546500066517,
-    "p95_ms": 28.595463999977255
+    "median_ms": 25.471621000008327,
+    "p95_ms": 31.074773000000278
   },
-  "rss_after_imports_mib": 770.53515625,
-  "peak_rss_mib": 864.44140625,
-  "rss_end_mib": 864.44140625,
+  "rss_after_imports_mib": 770.5546875,
+  "peak_rss_mib": 864.96484375,
+  "rss_end_mib": 864.96484375,
   "torch": "2.11.0+cu130"
 }

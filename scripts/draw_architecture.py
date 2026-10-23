@@ -1,5 +1,6 @@
 """Draws the M0 (BERT-Tiny pair classifier) architecture with per-block parameters and MACs.
 Also marks what changes in M1 (distillation loss) and M2 (quantized modules).
+Drawn at its printed size (one ACL column, 3.3 in wide) so the text stays readable.
 Numbers are analytic for google/bert_uncased_L-2_H-128_A-2 at 256 tokens; the notebook
 re-measures them with torch.utils.flop_counter.FlopCounterMode.
 """
@@ -11,96 +12,90 @@ from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 out = sys.argv[1] if len(sys.argv) > 1 else "m0_architecture"
 
-INK = "#1f2937"; MUTED = "#6b7280"
+INK = "#1f2937"; MUTED = "#4b5563"
 EMB = "#fde68a"; ENC = "#bfdbfe"; HEAD = "#bbf7d0"; IO = "#f3f4f6"
-Q_EDGE = "#7c3aed"; KD = "#fecaca"
+Q_EDGE = "#7c3aed"; KD = "#fecaca"; KD_EDGE = "#b91c1c"
 
-fig, ax = plt.subplots(figsize=(8.2, 10.6))
-ax.set_xlim(-2, 100); ax.set_ylim(0, 144); ax.axis("off")
-LINE = 2.9
+W_IN, H_IN = 3.3, 4.05
+fig = plt.figure(figsize=(W_IN, H_IN))
+ax = fig.add_axes([0, 0, 1, 1])
+ax.set_xlim(0, 100); ax.set_ylim(0, 100 * H_IN / W_IN); ax.axis("off")
+YMAX = 100 * H_IN / W_IN
+LINE = 3.1          # line spacing in data units (~7 pt text)
+TITLE_FS, LINE_FS, COST_FS = 7.6, 6.5, 6.5
 
 
-def box(x, y_top, w, title, lines=(), fc=IO, ec=INK, lw=1.2, ls="-", title_size=11):
-    h = 6.0 + LINE * len(lines)
+def box(x, y_top, w, title, lines=(), cost=None, fc=IO, ec=INK, lw=0.9, ls="-"):
+    n = len(lines) + (1 if cost else 0)
+    h = 4.6 + LINE * n
     y = y_top - h
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.4,rounding_size=1.2",
+    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.3,rounding_size=1.0",
                                 fc=fc, ec=ec, lw=lw, ls=ls))
-    ax.text(x + w / 2, y_top - 1.6, title, ha="center", va="top", fontsize=title_size, weight="bold", color=INK)
+    ax.text(x + w / 2, y_top - 0.9, title, ha="center", va="top", fontsize=TITLE_FS, weight="bold", color=INK)
     for i, t in enumerate(lines):
-        ax.text(x + w / 2, y_top - 5.2 - i * LINE, t, ha="center", va="top", fontsize=8.6, color=INK)
+        ax.text(x + w / 2, y_top - 4.3 - i * LINE, t, ha="center", va="top", fontsize=LINE_FS, color=INK)
+    if cost:
+        ax.text(x + w / 2, y_top - 4.3 - len(lines) * LINE, cost, ha="center", va="top",
+                fontsize=COST_FS, color=MUTED, style="italic")
     return y, h
 
 
-def arrow(x1, y1, x2, y2, color=INK, ls="-"):
-    ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle="-|>", mutation_scale=13,
-                                 color=color, lw=1.3, ls=ls))
+def arrow(x1, y1, x2, y2, color=INK, ls="-", style="-|>"):
+    ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle=style, mutation_scale=7,
+                                 color=color, lw=0.9, ls=ls, shrinkA=0, shrinkB=0))
 
 
-def cost(y_mid, params, macs):
-    ax.text(72, y_mid + 1.4, params, ha="left", va="center", fontsize=8.8, color=INK, weight="bold")
-    ax.text(72, y_mid - 1.6, macs, ha="left", va="center", fontsize=8.2, color=MUTED)
+ax.text(50, YMAX - 1.2, "M0: BERT-Tiny cross-encoder (L=2, H=128, A=2)", ha="center", va="top",
+        fontsize=8.2, weight="bold", color=INK)
 
-
-ax.text(49, 141, "M0: BERT-Tiny CV–job fit classifier (L=2, H=128, A=2, 256 tokens)",
-        ha="center", fontsize=13, weight="bold", color=INK)
-ax.text(72, 135, "Parameters\nMACs per pair (256 tokens)", ha="left", va="center", fontsize=8.6, color=MUTED)
-
-X, W, GAP = 16, 52, 3.4
+X, W, GAP = 3, 94, 3.0
 cx = X + W / 2
 blocks = [
-    dict(title="Input", lines=["CV text  +  job description text"], fc=IO, q=False, cost=None),
-    dict(title="WordPiece tokenizer (30,522-word vocab)",
-         lines=["[CLS] CV tokens [SEP] job tokens [SEP] → 256 ids",
-                "longest-first truncation · segment ids 0/1 · padding mask"], fc=IO, q=False, cost=("0", "—")),
+    dict(title="Input", lines=["CV text  +  job description text"], fc=IO, q=False),
+    dict(title="WordPiece tokenizer (30,522-word vocabulary)",
+         lines=["[CLS] CV [SEP] job [SEP] → 256 token ids",
+                "longest-first truncation · segment ids · padding mask"], fc=IO, q=False,
+         cost="0 parameters · 0 MACs"),
     dict(title="Embeddings",
          lines=["word 30,522×128 + position 512×128 + segment 2×128",
-                "→ LayerNorm, dropout → 256 × 128 vectors"], fc=EMB, q=True,
-         cost=("3,972,864  (90.6% of all)", "≈0 (table look-ups)")),
-]
-for i in (1, 2):
-    blocks.append(dict(title=f"Transformer encoder layer {i}",
-                       lines=["Multi-head self-attention, 2 heads × 64:",
-                              "Q, K, V, O = four Linear 128→128,  softmax(QKᵀ/√64)·V",
-                              "Add & LayerNorm",
-                              "Feed-forward: Linear 128→512 · GELU · Linear 512→128",
-                              "Add & LayerNorm → 256 × 128"], fc=ENC, q=True,
-                       cost=("198,272", "67.1 M (projections 16.8 M,\nattention 16.8 M, FFN 33.6 M)")))
-blocks += [
+                "LayerNorm, dropout → 256 × 128 vectors"], fc=EMB, q=True,
+         cost="3,972,864 parameters (90.6%) · ≈0 MACs (look-ups)"),
+    dict(title="Transformer encoder layer  × 2",
+         lines=["self-attention: 2 heads × 64, Q/K/V/O Linear 128→128",
+                "feed-forward: Linear 128→512 · GELU · Linear 512→128",
+                "residual + LayerNorm after each sub-layer"], fc=ENC, q=True,
+         cost="198,272 parameters · 67.1 M MACs per layer"),
     dict(title="Pooler + classifier head",
-         lines=["[CLS] vector → Linear 128→128, tanh (pooler)",
-                "dropout → Linear 128→3 (new, randomly initialised)"], fc=HEAD, q=True,
-         cost=("16,512 + 387", "16.4 K + 0.4 K")),
-    dict(title="Output", lines=["softmax over  No Fit · Potential Fit · Good Fit"], fc=IO, q=False, cost=None),
+         lines=["[CLS] → Linear 128→128, tanh → dropout → Linear 128→3",
+                "(the 128→3 layer is new, randomly initialised)"], fc=HEAD, q=True,
+         cost="16,512 + 387 parameters · 16.9 K MACs"),
+    dict(title="Output", lines=["softmax over  No Fit · Potential Fit · Good Fit"], fc=IO, q=False),
 ]
-y_top = 121
+y_top = YMAX - 7.0
 centers = {}
 for k, b in enumerate(blocks):
-    y, h = box(X, y_top, W, b["title"], b["lines"], fc=b["fc"],
-               ec=Q_EDGE if b["q"] else INK, lw=2.0 if b["q"] else 1.2, ls="--" if b["q"] else "-")
-    centers[b["title"]] = y + h / 2
-    if b["cost"]:
-        cost(y + h / 2, *b["cost"])
+    y, h = box(X, y_top, W, b["title"], b["lines"], b.get("cost"), fc=b["fc"],
+               ec=Q_EDGE if b["q"] else INK, lw=1.3 if b["q"] else 0.9, ls="--" if b["q"] else "-")
+    centers[b["title"]] = (y, h)
     if k < len(blocks) - 1:
-        arrow(cx, y - 0.4, cx, y - GAP + 0.6)
+        arrow(cx, y - 0.2, cx, y - GAP + 0.3)
     y_top = y - GAP
 
-ax.text(72, 4.5, "Total: 4,386,307 parameters\n≈134.2 M MACs per pair", ha="left", va="center",
-        fontsize=9.2, weight="bold", color=INK)
+ax.text(50, y_top - 0.2, "Total: 4,386,307 parameters · 134.2 M MACs per pair (256 tokens)",
+        ha="center", va="top", fontsize=6.6, weight="bold", color=INK)
 
-# M1 annotation (left)
-my = centers["Pooler + classifier head"]
-ax.add_patch(FancyBboxPatch((-1.5, my - 4), 14.5, 30, boxstyle="round,pad=0.4,rounding_size=1.2", fc=KD, ec=INK, lw=1.2))
-ax.text(5.75, my + 24.5, "M1 change", ha="center", va="top", fontsize=10, weight="bold", color=INK)
-for i, t in enumerate(["Teacher", "BERT-base", "(fine-tuned,", "training only)", "gives soft", "targets", "", "loss =", "0.5·CE", "+ 0.5·T²·KL"]):
-    ax.text(5.75, my + 20.5 - i * 2.4, t, ha="center", va="top", fontsize=8.4, color=INK)
-arrow(13.2, my + 2, X - 0.3, my + 2, color="#b91c1c", ls="--")
+# M1 change (training only)
+y_m1 = y_top - 5.0
+y, h = box(X, y_m1, W, "M1 change (training only)",
+           ["BERT-base teacher (fine-tuned) gives soft targets for the logits:",
+            "loss = 0.5·CE(label) + 0.5·T²·KL(teacher ‖ student)"], fc=KD, ec=KD_EDGE, lw=1.1)
 
-# M2 legend (top right)
-ax.text(72, 129, "M2 change (post-training):", fontsize=9, weight="bold", color=Q_EDGE)
-ax.text(72, 126.5, "dashed purple boxes are quantized\n• all Linear layers → dynamic INT8\n• embeddings → 8-bit weight-only\n• LayerNorm stays FP32",
-        fontsize=8.4, va="top", color=Q_EDGE)
+# M2 legend
+ax.text(50, y - 2.0, "Dashed purple = quantized in M2 (post-training): Linear → dynamic INT8,",
+        ha="center", va="top", fontsize=6.3, color=Q_EDGE)
+ax.text(50, y - 2.0 - LINE * 0.95, "embeddings → 8-bit weight-only; LayerNorm stays FP32.",
+        ha="center", va="top", fontsize=6.3, color=Q_EDGE)
 
-plt.tight_layout()
-plt.savefig(out + ".png", dpi=220, bbox_inches="tight")
-plt.savefig(out + ".pdf", bbox_inches="tight")
+plt.savefig(out + ".png", dpi=300, bbox_inches="tight", pad_inches=0.02)
+plt.savefig(out + ".pdf", bbox_inches="tight", pad_inches=0.02)
 print("saved", out)

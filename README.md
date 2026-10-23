@@ -95,12 +95,12 @@ Local alternative: `pip install -r requirements.txt`, then run the notebook with
 |---|---|---|
 | Majority class | 22.2 | 49.8 |
 | TF-IDF + logistic regression | 36.7 | 52.8 |
-| M0, seed 42 (lr 3e-4) | 48.2 | 56.2 |
-| M0, seeds 42–44 (mean ± s.d.) | 44.6 ± 5.0 | 53.5 ± 2.4 |
+| M0, seed 42 (lr 1e-4) | 46.5 | 55.6 |
+| M0, seeds 42–44 (mean ± s.d.) | 40.0 ± 5.7 | 52.5 ± 2.7 |
 
 Overfit-one-batch test passed (loss 1.150 → 0.0009, 100% accuracy). Cost: 4,386,307 parameters, 134.2 M MACs per pair,
-16.74 MiB saved weights, 5.4 ms median CPU latency (1 thread, batch 1; 24.2 ms including tokenisation),
-peak memory 864 MiB (771 MiB of which is PyTorch/Transformers after import).
+16.74 MiB saved weights, 5.9 ms median CPU latency (1 thread, batch 1; 25.5 ms including tokenisation),
+peak memory 865 MiB (771 MiB of which is PyTorch/Transformers after import).
 All pairs exceed 256 tokens (median 1,563), so the model sees only the start of each text.
 Figures: `figures/`; raw numbers: `results/m0_baseline.json`.
 
