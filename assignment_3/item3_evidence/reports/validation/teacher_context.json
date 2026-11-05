@@ -1,0 +1,5 @@
+{
+  "teacher_validation_macro_f1": 50.46326232321402,
+  "M0_seed42_macro_f1": 46.536276922018175,
+  "note": "One selected teacher, not a three-teacher seed study; inspect its strength without replacing the approved method."
+}

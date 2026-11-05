@@ -4,7 +4,9 @@
 **Team:** Rawan Khojah · Hams Aljohani
 **Instructor:** Dr Naila Marir
 
-> **Status:** Assignment 1 submitted. Assignment 2: M0 baseline trained and evaluated on **validation only**; report draft in `report/milestones_1_2/`. M1 and M2 not started.
+> **Assignment 3 — preliminary validation results:** [Research report (PDF)](assignment_3/HireMind_Assignment_3.pdf) · [Corrected notebook](assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb) · [Results, figures and reproduction instructions](assignment_3/README.md)
+
+Earlier milestones: [Assignment 1 proposal](proposal/HireMind_DL_Proposal_Final.pdf) · [Assignment 2 baseline report](report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf).
 
 ## Project description
 
@@ -85,9 +87,9 @@ Local alternative: `pip install -r requirements.txt`, then run the notebook with
 | item 2 : 9-paper comparison, research gap, dataset analysis, split code | ✅  |
 | item 2: M0 architecture diagram, parameters and MACs | ✅ Ready |
 | item 2: M0 training, overfit test, loss curves, cost | ✅ Done |
-| 90-pair label check | ⏳  |
-| Teacher, M1, M2 training and evaluation | ⏳ Not started |
-| Final report, presentation, poster | ⏳ Not started |
+| 90-pair label check | Completed independently after training, as confirmed by the team |
+| Teacher, M1 distillation and M2 quantization | Completed for Assignment 3 validation |
+| Assignment 4 final report, presentation and poster | Drafts prepared; final evaluation and submission pending |
 
 ### M0 baseline (validation split, BERT-Tiny, 256 tokens)
 
