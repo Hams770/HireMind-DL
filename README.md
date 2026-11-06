@@ -4,6 +4,8 @@
 **Team:** Rawan Khojah · Hams Aljohani
 **Instructor:** Dr Naila Marir
 
+> **Assignment 4 — held-out results:** [Research report (PDF)](assignment_4/HireMind_Final_Report.pdf) · [Evaluation notebook](assignment_4/code/HireMind_A4_Final_Evaluation.ipynb) · [Results and reproduction instructions](assignment_4/README.md)
+
 > **Assignment 3 — preliminary validation results:** [Research report (PDF)](assignment_3/HireMind_Assignment_3.pdf) · [Corrected notebook](assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb) · [Results, figures and reproduction instructions](assignment_3/README.md)
 
 Earlier milestones: [Assignment 1 proposal](proposal/HireMind_DL_Proposal_Final.pdf) · [Assignment 2 baseline report](report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf).
@@ -89,7 +91,8 @@ Local alternative: `pip install -r requirements.txt`, then run the notebook with
 | item 2: M0 training, overfit test, loss curves, cost | ✅ Done |
 | 90-pair label check | Completed independently after training, as confirmed by the team |
 | Teacher, M1 distillation and M2 quantization | Completed for Assignment 3 validation |
-| Assignment 4 final report, presentation and poster | Drafts prepared; final evaluation and submission pending |
+| Assignment 4 held-out evaluation | Completed and published with report, code and results; author review and submission details pending |
+| Assignment 4 presentation and poster | Publication deferred by the authors |
 
 ### M0 baseline (validation split, BERT-Tiny, 256 tokens)
 
@@ -106,7 +109,7 @@ peak memory 865 MiB (771 MiB of which is PyTorch/Transformers after import).
 All pairs exceed 256 tokens (median 1,563), so the model sees only the start of each text.
 Figures: `figures/`; raw numbers: `results/m0_baseline.json`.
 
-Only results produced by the notebook are reported. Validation is used for all choices; the test set is reserved for the final evaluation.
+The table above records the historical Assignment 2 validation results. Model choices were frozen before the completed Assignment 4 held-out evaluation; see assignment_4/results for the final measurements.
 
 ## Links
 

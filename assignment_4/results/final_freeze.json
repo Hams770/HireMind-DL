@@ -1,0 +1,66 @@
+{
+  "protocol": {
+    "config": {
+      "max_len": 256,
+      "batch": 16,
+      "epochs": 3,
+      "eval_every": 100,
+      "weight_decay": 0.01,
+      "clip_norm": 1.0,
+      "warmup_fraction": 0.1,
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "m0_lrs": [
+        2e-05,
+        5e-05,
+        0.0001,
+        0.0003
+      ],
+      "teacher_lrs": [
+        2e-05,
+        5e-05
+      ],
+      "m1_lrs": [
+        5e-05,
+        0.0001
+      ],
+      "temperatures": [
+        2.0,
+        4.0
+      ],
+      "alpha": 0.5,
+      "teacher_micro_batch": 4,
+      "student_micro_batch": 16,
+      "validation_batch": 16,
+      "cpu_threads": 1,
+      "benchmark_examples": 20,
+      "warmup": 30,
+      "timed": 200,
+      "precision": "float32",
+      "test_evaluation": false
+    },
+    "student": "google/bert_uncased_L-2_H-128_A-2",
+    "student_revision": "30b0a37ccaaa32f332884b96992754e246e48c5f",
+    "dataset": "cnamuangtoun/resume-job-description-fit",
+    "dataset_revision": "08978e21714984bb417547d2c0f9b477f5298163",
+    "split_sha256": "2ff3926c70152e6d5f47fbf40acebbb287e3311969618a8c7a20f45861539f9b"
+  },
+  "selection_hashes": {
+    "M0_selected": "7efc9bca2dafa86adabc898a616e907e2729ad9b6ab63b5e0b6ecd109c4818fd",
+    "M1_selected": "6906921a0cfc29be98822d27ab7f1930d45334e463949231c81993612b463b08",
+    "quantization_results": "9d9d5bae3e80e8a8be1d3becef4b8c9a6bddf2e78148b74e04c8534c88239f22",
+    "temperature_ablation": "d4fd6d69134499e63cc978481e2bf2fa18f41bc94646be3a970d53d96424ba46",
+    "active_benchmark": "9dab30c05661ff021bb75e3c87c7e39bb345951496bdd86fe2092f5b7d2a81b4"
+  },
+  "test_sha256": "f3c48f4cc3559bf192ebb9c241a30c601b5b8b3eee6f1656dd4d26dfd4b0887a",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "deployment_seed": 42,
+  "rule": "No selection or tuning using test. H1/H2 assessed on paired three-seed means. Ablations reported on validation."
+}

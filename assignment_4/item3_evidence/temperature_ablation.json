@@ -1,0 +1,686 @@
+[
+  {
+    "tag": "M1_s42_lr5e-05_T1",
+    "kind": "M1",
+    "lr": 5e-05,
+    "seed": 42,
+    "temperature": 1.0,
+    "steps": 939,
+    "best": {
+      "loss": 0.9646578955363079,
+      "accuracy": 53.44234079173839,
+      "macro_f1": 44.20664511958382,
+      "per_class": {
+        "No Fit": {
+          "precision": 0.6297814207650273,
+          "recall": 0.7962003454231433,
+          "f1-score": 0.7032799389778794,
+          "support": 579.0
+        },
+        "Potential Fit": {
+          "precision": 0.35294117647058826,
+          "recall": 0.20408163265306123,
+          "f1-score": 0.25862068965517243,
+          "support": 294.0
+        },
+        "Good Fit": {
+          "precision": 0.38461538461538464,
+          "recall": 0.3460207612456747,
+          "f1-score": 0.36429872495446264,
+          "support": 289.0
+        },
+        "accuracy": 0.5344234079173839,
+        "macro avg": {
+          "precision": 0.4557793272836667,
+          "recall": 0.4487675797739598,
+          "f1-score": 0.44206645119583815,
+          "support": 1162.0
+        },
+        "weighted avg": {
+          "precision": 0.49876247388911354,
+          "recall": 0.5344234079173839,
+          "f1-score": 0.5064680713757768,
+          "support": 1162.0
+        }
+      },
+      "confusion": [
+        [
+          461,
+          38,
+          80
+        ],
+        [
+          154,
+          60,
+          80
+        ],
+        [
+          117,
+          72,
+          100
+        ]
+      ],
+      "step": 939
+    },
+    "seconds": 225.25089019600046,
+    "timing_scope": "training/validation elapsed; includes earlier recovery I/O; interrupted unsaved work excluded",
+    "peak_gpu_allocated_MiB": 300.7822265625,
+    "weights": "/content/drive/MyDrive/HireMind_Continuation_v2/private/checkpoints/M1_s42_lr5e-05_T1_7845e1d9.pt",
+    "weights_sha256": "6144850dd2f71080ccd6e940dfde2760797c9e2cd48f21cc4bbdc21279a6e83c",
+    "history": [
+      {
+        "step": 100,
+        "epoch": 1,
+        "train_objective": 0.8122071433067322,
+        "validation_ce": 1.0369631751679307,
+        "validation_macro_f1": 22.171165996553707,
+        "validation_accuracy": 49.827882960413085
+      },
+      {
+        "step": 200,
+        "epoch": 1,
+        "train_objective": 0.7601343369483948,
+        "validation_ce": 1.0084279336535376,
+        "validation_macro_f1": 22.412937381090245,
+        "validation_accuracy": 49.5697074010327
+      },
+      {
+        "step": 300,
+        "epoch": 1,
+        "train_objective": 0.7402094531059266,
+        "validation_ce": 0.9880814289677369,
+        "validation_macro_f1": 30.560592869711755,
+        "validation_accuracy": 51.893287435456116
+      },
+      {
+        "step": 400,
+        "epoch": 2,
+        "train_objective": 0.7178337925672531,
+        "validation_ce": 0.9756207847759358,
+        "validation_macro_f1": 41.13516230867933,
+        "validation_accuracy": 53.35628227194492
+      },
+      {
+        "step": 500,
+        "epoch": 2,
+        "train_objective": 0.6942144352197647,
+        "validation_ce": 0.9692540390356067,
+        "validation_macro_f1": 40.562540825039335,
+        "validation_accuracy": 53.44234079173839
+      },
+      {
+        "step": 600,
+        "epoch": 2,
+        "train_objective": 0.6691720369458198,
+        "validation_ce": 0.97226991567267,
+        "validation_macro_f1": 42.33179214537697,
+        "validation_accuracy": 53.35628227194492
+      },
+      {
+        "step": 700,
+        "epoch": 3,
+        "train_objective": 0.6551240009069442,
+        "validation_ce": 0.961500914289701,
+        "validation_macro_f1": 42.60425953290819,
+        "validation_accuracy": 54.13080895008606
+      },
+      {
+        "step": 800,
+        "epoch": 3,
+        "train_objective": 0.6274164444208146,
+        "validation_ce": 0.9644695809704096,
+        "validation_macro_f1": 43.17033485693276,
+        "validation_accuracy": 53.87263339070568
+      },
+      {
+        "step": 900,
+        "epoch": 3,
+        "train_objective": 0.6306330853700638,
+        "validation_ce": 0.9639246307839214,
+        "validation_macro_f1": 44.10420864337915,
+        "validation_accuracy": 53.528399311531835
+      },
+      {
+        "step": 939,
+        "epoch": 3,
+        "train_objective": 0.6194233558116815,
+        "validation_ce": 0.9646578955363079,
+        "validation_macro_f1": 44.20664511958382,
+        "validation_accuracy": 53.44234079173839
+      }
+    ],
+    "effective_batch": 16,
+    "micro_batch": 16,
+    "validation_batch": 16,
+    "precision": "float32",
+    "contract": {
+      "protocol": {
+        "config": {
+          "max_len": 256,
+          "batch": 16,
+          "epochs": 3,
+          "eval_every": 100,
+          "weight_decay": 0.01,
+          "clip_norm": 1.0,
+          "warmup_fraction": 0.1,
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "m0_lrs": [
+            2e-05,
+            5e-05,
+            0.0001,
+            0.0003
+          ],
+          "teacher_lrs": [
+            2e-05,
+            5e-05
+          ],
+          "m1_lrs": [
+            5e-05,
+            0.0001
+          ],
+          "temperatures": [
+            2.0,
+            4.0
+          ],
+          "alpha": 0.5,
+          "teacher_micro_batch": 4,
+          "student_micro_batch": 16,
+          "validation_batch": 16,
+          "cpu_threads": 1,
+          "benchmark_examples": 20,
+          "warmup": 30,
+          "timed": 200,
+          "precision": "float32",
+          "test_evaluation": false
+        },
+        "student": "google/bert_uncased_L-2_H-128_A-2",
+        "student_revision": "30b0a37ccaaa32f332884b96992754e246e48c5f",
+        "dataset": "cnamuangtoun/resume-job-description-fit",
+        "dataset_revision": "08978e21714984bb417547d2c0f9b477f5298163",
+        "split_sha256": "2ff3926c70152e6d5f47fbf40acebbb287e3311969618a8c7a20f45861539f9b"
+      },
+      "kind": "M1",
+      "lr": 5e-05,
+      "seed": 42,
+      "temperature": 1.0
+    },
+    "actual_environment": {
+      "python": "3.13.16",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.51.3",
+      "numpy": "2.1.3",
+      "pandas": "2.2.3",
+      "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+      "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+      "gpu": "Tesla T4",
+      "cuda": "13.0"
+    },
+    "teacher_provenance": {
+      "teacher_tag": "teacher_s42_lr5e-05",
+      "teacher_weights_sha256": "de33a4a306f3b651dbde6176067fa813c931eb18a30c52e0f62787566b43b13d",
+      "targets_sha256": "cee1e2b9c1c0fc0bd55fe26e6eca683ef4f3478336efdb1bef2be9a0049f5ded",
+      "training_ids_sha256": "e3faf9d4e809c7cd041a7eb4d8266a390884e9a84975fb465c373da2eaed83c4"
+    },
+    "source_root": "/content/drive/MyDrive/HireMind_Continuation_v2"
+  },
+  {
+    "tag": "M1_s43_lr5e-05_T1",
+    "kind": "M1",
+    "lr": 5e-05,
+    "seed": 43,
+    "temperature": 1.0,
+    "steps": 939,
+    "best": {
+      "loss": 0.9986034806131701,
+      "accuracy": 52.83993115318416,
+      "macro_f1": 38.516187955439754,
+      "per_class": {
+        "No Fit": {
+          "precision": 0.582639714625446,
+          "recall": 0.846286701208981,
+          "f1-score": 0.6901408450704225,
+          "support": 579.0
+        },
+        "Potential Fit": {
+          "precision": 0.4827586206896552,
+          "recall": 0.047619047619047616,
+          "f1-score": 0.08668730650154799,
+          "support": 294.0
+        },
+        "Good Fit": {
+          "precision": 0.3767123287671233,
+          "recall": 0.3806228373702422,
+          "f1-score": 0.37865748709122204,
+          "support": 289.0
+        },
+        "accuracy": 0.5283993115318416,
+        "macro avg": {
+          "precision": 0.4807035546940748,
+          "recall": 0.4248428620660903,
+          "f1-score": 0.38516187955439757,
+          "support": 1162.0
+        },
+        "weighted avg": {
+          "precision": 0.5061525750986148,
+          "recall": 0.5283993115318416,
+          "f1-score": 0.4599910767440559,
+          "support": 1162.0
+        }
+      },
+      "confusion": [
+        [
+          490,
+          3,
+          86
+        ],
+        [
+          184,
+          14,
+          96
+        ],
+        [
+          167,
+          12,
+          110
+        ]
+      ],
+      "step": 939
+    },
+    "seconds": 234.4225435999997,
+    "timing_scope": "training/validation elapsed; includes earlier recovery I/O; interrupted unsaved work excluded",
+    "peak_gpu_allocated_MiB": 300.7822265625,
+    "weights": "/content/drive/MyDrive/HireMind_Continuation_v2/private/checkpoints/M1_s43_lr5e-05_T1_e5011427.pt",
+    "weights_sha256": "e027a8489cbf5294431cefa200c886e7a2cd7ced83b4de25c2b53c15079e5690",
+    "history": [
+      {
+        "step": 100,
+        "epoch": 1,
+        "train_objective": 0.8077371519804001,
+        "validation_ce": 1.0311375501439002,
+        "validation_macro_f1": 22.171165996553707,
+        "validation_accuracy": 49.827882960413085
+      },
+      {
+        "step": 200,
+        "epoch": 1,
+        "train_objective": 0.7609403210878373,
+        "validation_ce": 1.0101277329630367,
+        "validation_macro_f1": 22.171165996553707,
+        "validation_accuracy": 49.827882960413085
+      },
+      {
+        "step": 300,
+        "epoch": 1,
+        "train_objective": 0.7303934836387634,
+        "validation_ce": 0.994164231722203,
+        "validation_macro_f1": 29.90029949558638,
+        "validation_accuracy": 52.323580034423415
+      },
+      {
+        "step": 400,
+        "epoch": 2,
+        "train_objective": 0.6952219858765603,
+        "validation_ce": 0.9806305763027959,
+        "validation_macro_f1": 37.29587733777303,
+        "validation_accuracy": 54.30292598967298
+      },
+      {
+        "step": 500,
+        "epoch": 2,
+        "train_objective": 0.6619699716567993,
+        "validation_ce": 0.9815222909241248,
+        "validation_macro_f1": 36.04458626603673,
+        "validation_accuracy": 52.83993115318416
+      },
+      {
+        "step": 600,
+        "epoch": 2,
+        "train_objective": 0.6267980569601059,
+        "validation_ce": 0.9902466789990817,
+        "validation_macro_f1": 35.55213089821938,
+        "validation_accuracy": 52.23752151462995
+      },
+      {
+        "step": 700,
+        "epoch": 3,
+        "train_objective": 0.6064462575316429,
+        "validation_ce": 0.9920715229031141,
+        "validation_macro_f1": 38.508411436391945,
+        "validation_accuracy": 53.01204819277109
+      },
+      {
+        "step": 800,
+        "epoch": 3,
+        "train_objective": 0.6023283782601356,
+        "validation_ce": 0.9958035320094859,
+        "validation_macro_f1": 37.70296208530388,
+        "validation_accuracy": 52.49569707401033
+      },
+      {
+        "step": 900,
+        "epoch": 3,
+        "train_objective": 0.5905906358361244,
+        "validation_ce": 0.9990845828376416,
+        "validation_macro_f1": 38.501836142083626,
+        "validation_accuracy": 52.83993115318416
+      },
+      {
+        "step": 939,
+        "epoch": 3,
+        "train_objective": 0.5987607187185532,
+        "validation_ce": 0.9986034806131701,
+        "validation_macro_f1": 38.516187955439754,
+        "validation_accuracy": 52.83993115318416
+      }
+    ],
+    "effective_batch": 16,
+    "micro_batch": 16,
+    "validation_batch": 16,
+    "precision": "float32",
+    "contract": {
+      "protocol": {
+        "config": {
+          "max_len": 256,
+          "batch": 16,
+          "epochs": 3,
+          "eval_every": 100,
+          "weight_decay": 0.01,
+          "clip_norm": 1.0,
+          "warmup_fraction": 0.1,
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "m0_lrs": [
+            2e-05,
+            5e-05,
+            0.0001,
+            0.0003
+          ],
+          "teacher_lrs": [
+            2e-05,
+            5e-05
+          ],
+          "m1_lrs": [
+            5e-05,
+            0.0001
+          ],
+          "temperatures": [
+            2.0,
+            4.0
+          ],
+          "alpha": 0.5,
+          "teacher_micro_batch": 4,
+          "student_micro_batch": 16,
+          "validation_batch": 16,
+          "cpu_threads": 1,
+          "benchmark_examples": 20,
+          "warmup": 30,
+          "timed": 200,
+          "precision": "float32",
+          "test_evaluation": false
+        },
+        "student": "google/bert_uncased_L-2_H-128_A-2",
+        "student_revision": "30b0a37ccaaa32f332884b96992754e246e48c5f",
+        "dataset": "cnamuangtoun/resume-job-description-fit",
+        "dataset_revision": "08978e21714984bb417547d2c0f9b477f5298163",
+        "split_sha256": "2ff3926c70152e6d5f47fbf40acebbb287e3311969618a8c7a20f45861539f9b"
+      },
+      "kind": "M1",
+      "lr": 5e-05,
+      "seed": 43,
+      "temperature": 1.0
+    },
+    "actual_environment": {
+      "python": "3.13.16",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.51.3",
+      "numpy": "2.1.3",
+      "pandas": "2.2.3",
+      "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+      "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+      "gpu": "Tesla T4",
+      "cuda": "13.0"
+    },
+    "teacher_provenance": {
+      "teacher_tag": "teacher_s42_lr5e-05",
+      "teacher_weights_sha256": "de33a4a306f3b651dbde6176067fa813c931eb18a30c52e0f62787566b43b13d",
+      "targets_sha256": "cee1e2b9c1c0fc0bd55fe26e6eca683ef4f3478336efdb1bef2be9a0049f5ded",
+      "training_ids_sha256": "e3faf9d4e809c7cd041a7eb4d8266a390884e9a84975fb465c373da2eaed83c4"
+    },
+    "source_root": "/content/drive/MyDrive/HireMind_Continuation_v2"
+  },
+  {
+    "tag": "M1_s44_lr5e-05_T1",
+    "kind": "M1",
+    "lr": 5e-05,
+    "seed": 44,
+    "temperature": 1.0,
+    "steps": 939,
+    "best": {
+      "loss": 1.0619280024362718,
+      "accuracy": 47.16006884681583,
+      "macro_f1": 30.131444961278735,
+      "per_class": {
+        "No Fit": {
+          "precision": 0.5267094017094017,
+          "recall": 0.8514680483592401,
+          "f1-score": 0.6508250825082508,
+          "support": 579.0
+        },
+        "Potential Fit": {
+          "precision": 0.3586206896551724,
+          "recall": 0.17687074829931973,
+          "f1-score": 0.23690205011389523,
+          "support": 294.0
+        },
+        "Good Fit": {
+          "precision": 0.037037037037037035,
+          "recall": 0.010380622837370242,
+          "f1-score": 0.016216216216216217,
+          "support": 289.0
+        },
+        "accuracy": 0.47160068846815834,
+        "macro avg": {
+          "precision": 0.3074557094672037,
+          "recall": 0.34623980649864333,
+          "f1-score": 0.30131444961278736,
+          "support": 1162.0
+        },
+        "weighted avg": {
+          "precision": 0.36239494840969705,
+          "recall": 0.47160068846815834,
+          "f1-score": 0.38826455421019695,
+          "support": 1162.0
+        }
+      },
+      "confusion": [
+        [
+          493,
+          33,
+          53
+        ],
+        [
+          217,
+          52,
+          25
+        ],
+        [
+          226,
+          60,
+          3
+        ]
+      ],
+      "step": 700
+    },
+    "seconds": 255.64948470199943,
+    "timing_scope": "training/validation elapsed; includes earlier recovery I/O; interrupted unsaved work excluded",
+    "peak_gpu_allocated_MiB": 300.7822265625,
+    "weights": "/content/drive/MyDrive/HireMind_Continuation_v2/private/checkpoints/M1_s44_lr5e-05_T1_6f0418d5.pt",
+    "weights_sha256": "71098d35f2551dfab276d3ae5293e469c1939a405f7af206a763d230ff02b993",
+    "history": [
+      {
+        "step": 100,
+        "epoch": 1,
+        "train_objective": 0.800482810139656,
+        "validation_ce": 1.0397477164325943,
+        "validation_macro_f1": 22.171165996553707,
+        "validation_accuracy": 49.827882960413085
+      },
+      {
+        "step": 200,
+        "epoch": 1,
+        "train_objective": 0.7609721040725708,
+        "validation_ce": 1.0430277206401202,
+        "validation_macro_f1": 22.171165996553707,
+        "validation_accuracy": 49.827882960413085
+      },
+      {
+        "step": 300,
+        "epoch": 1,
+        "train_objective": 0.733326461315155,
+        "validation_ce": 1.035297341272876,
+        "validation_macro_f1": 22.132719601074033,
+        "validation_accuracy": 49.65576592082616
+      },
+      {
+        "step": 400,
+        "epoch": 2,
+        "train_objective": 0.6931069725751877,
+        "validation_ce": 1.038684240511896,
+        "validation_macro_f1": 23.026293828337995,
+        "validation_accuracy": 48.45094664371773
+      },
+      {
+        "step": 500,
+        "epoch": 2,
+        "train_objective": 0.6468977558612824,
+        "validation_ce": 1.0548535579248057,
+        "validation_macro_f1": 26.92223845397769,
+        "validation_accuracy": 46.55765920826162
+      },
+      {
+        "step": 600,
+        "epoch": 2,
+        "train_objective": 0.6271067062020301,
+        "validation_ce": 1.0603282377765018,
+        "validation_macro_f1": 29.944558288620332,
+        "validation_accuracy": 47.246127366609294
+      },
+      {
+        "step": 700,
+        "epoch": 3,
+        "train_objective": 0.598472059071064,
+        "validation_ce": 1.0619280024362718,
+        "validation_macro_f1": 30.131444961278735,
+        "validation_accuracy": 47.16006884681583
+      },
+      {
+        "step": 800,
+        "epoch": 3,
+        "train_objective": 0.5881226742267609,
+        "validation_ce": 1.0663262322519405,
+        "validation_macro_f1": 29.127128339726767,
+        "validation_accuracy": 46.21342512908778
+      },
+      {
+        "step": 900,
+        "epoch": 3,
+        "train_objective": 0.5620760494470596,
+        "validation_ce": 1.0772455054593373,
+        "validation_macro_f1": 29.218611498112583,
+        "validation_accuracy": 47.332185886402755
+      },
+      {
+        "step": 939,
+        "epoch": 3,
+        "train_objective": 0.5843051503866147,
+        "validation_ce": 1.0768103320504219,
+        "validation_macro_f1": 29.106924158317753,
+        "validation_accuracy": 47.07401032702238
+      }
+    ],
+    "effective_batch": 16,
+    "micro_batch": 16,
+    "validation_batch": 16,
+    "precision": "float32",
+    "contract": {
+      "protocol": {
+        "config": {
+          "max_len": 256,
+          "batch": 16,
+          "epochs": 3,
+          "eval_every": 100,
+          "weight_decay": 0.01,
+          "clip_norm": 1.0,
+          "warmup_fraction": 0.1,
+          "seeds": [
+            42,
+            43,
+            44
+          ],
+          "m0_lrs": [
+            2e-05,
+            5e-05,
+            0.0001,
+            0.0003
+          ],
+          "teacher_lrs": [
+            2e-05,
+            5e-05
+          ],
+          "m1_lrs": [
+            5e-05,
+            0.0001
+          ],
+          "temperatures": [
+            2.0,
+            4.0
+          ],
+          "alpha": 0.5,
+          "teacher_micro_batch": 4,
+          "student_micro_batch": 16,
+          "validation_batch": 16,
+          "cpu_threads": 1,
+          "benchmark_examples": 20,
+          "warmup": 30,
+          "timed": 200,
+          "precision": "float32",
+          "test_evaluation": false
+        },
+        "student": "google/bert_uncased_L-2_H-128_A-2",
+        "student_revision": "30b0a37ccaaa32f332884b96992754e246e48c5f",
+        "dataset": "cnamuangtoun/resume-job-description-fit",
+        "dataset_revision": "08978e21714984bb417547d2c0f9b477f5298163",
+        "split_sha256": "2ff3926c70152e6d5f47fbf40acebbb287e3311969618a8c7a20f45861539f9b"
+      },
+      "kind": "M1",
+      "lr": 5e-05,
+      "seed": 44,
+      "temperature": 1.0
+    },
+    "actual_environment": {
+      "python": "3.13.16",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.51.3",
+      "numpy": "2.1.3",
+      "pandas": "2.2.3",
+      "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+      "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+      "gpu": "Tesla T4",
+      "cuda": "13.0"
+    },
+    "teacher_provenance": {
+      "teacher_tag": "teacher_s42_lr5e-05",
+      "teacher_weights_sha256": "de33a4a306f3b651dbde6176067fa813c931eb18a30c52e0f62787566b43b13d",
+      "targets_sha256": "cee1e2b9c1c0fc0bd55fe26e6eca683ef4f3478336efdb1bef2be9a0049f5ded",
+      "training_ids_sha256": "e3faf9d4e809c7cd041a7eb4d8266a390884e9a84975fb465c373da2eaed83c4"
+    },
+    "source_root": "/content/drive/MyDrive/HireMind_Continuation_v2"
+  }
+]

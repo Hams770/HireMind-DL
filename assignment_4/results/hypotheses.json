@@ -1,0 +1,16 @@
+{
+  "H1_gain_at_least_one_point": false,
+  "gain_points": -1.8235941807186578,
+  "H2_storage_all_seeds": true,
+  "size_ratios": [
+    0.26619178968933416,
+    0.2662445637687862,
+    0.2662445637687862
+  ],
+  "H2_quality_loss_at_most_one_point": true,
+  "quality_loss_points": -0.5131906658852756,
+  "gain_retention_confirmatory": false,
+  "retained_gain_points": -1.3104035148333821,
+  "retention_threshold_met": null,
+  "note": "Descriptive three-seed evidence, not a statistical-significance claim. When H1 fails, retention is not confirmatory."
+}
