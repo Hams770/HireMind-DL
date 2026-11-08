@@ -1,4 +1,4 @@
-"""Builds notebook/HireMind_M0_Baseline.ipynb from the cells below."""
+"""Builds assignment_2/notebooks/HireMind_M0_Baseline.ipynb from the cells below."""
 import json
 from pathlib import Path
 
@@ -38,7 +38,7 @@ code("""
 !pip -q install huggingface_hub
 """)
 
-code("%%writefile data_prep.py\n" + (ROOT / "data_prep.py").read_text())
+code("%%writefile data_prep.py\n" + (ROOT.parents[1] / "src/hiremind_dl/splits.py").read_text())
 code("%%writefile bench_cpu.py\n" + (ROOT / "bench_cpu.py").read_text())
 
 code(r'''

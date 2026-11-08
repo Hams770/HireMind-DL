@@ -15,7 +15,7 @@
 | Conflicting duplicate pairs | 6 pairs (12 rows) — to be removed |
 | Train–test overlap | 476 identical CVs shared; no identical job descriptions shared |
 
-Full counts and file hashes: `../results/dataset_audit.json`.
+Full counts and file hashes: `../assignment_2/results/dataset_audit.json`.
 
 **Status:** Approved by the instructor for this project.
 

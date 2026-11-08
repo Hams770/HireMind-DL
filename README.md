@@ -21,12 +21,15 @@ on our CPU.
 
 ## Deliverables by assignment
 
-| Assignment | Main document | Code and evidence |
+Each assignment has its own folder with the submitted document, its source and its evidence.
+Code shared by all milestones (the reproducible pipeline) is at the top level.
+
+| Assignment | Folder | Main document |
 |---|---|---|
-| **Item 1 — Proposal** | [`proposal/HireMind_DL_Proposal_Final.pdf`](proposal/HireMind_DL_Proposal_Final.pdf) | [`proposal/`](proposal/) (LaTeX source, AI review, Prompt C check) · [`literature/`](literature/) |
-| **Item 2 — Milestones 1–2** (related work, data, M0 baseline) | [`report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf`](report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf) | [`notebooks/`](notebooks/) · [`scripts/`](scripts/) · [`splits/`](splits/) · [`results/`](results/) · [`figures/`](figures/) |
-| **Item 3 — Preliminary results** (validation only) | [`assignment_3/HireMind_Assignment_3.pdf`](assignment_3/HireMind_Assignment_3.pdf) | [`assignment_3/`](assignment_3/) — notebook, saved evidence, paper source · [README](assignment_3/README.md) |
-| **Item 4 — Final research project** (held-out test) | [`assignment_4/HireMind_Final_Report.pdf`](assignment_4/HireMind_Final_Report.pdf) · [slides](assignment_4/HireMind_Presentation.pdf) · [poster](assignment_4/HireMind_A1_Poster.pdf) | [`assignment_4/`](assignment_4/) — evaluation notebook, verification scripts, results · [README](assignment_4/README.md) |
+| **Item 1 — Proposal** | [`assignment_1/`](assignment_1/) | [`HireMind_DL_Proposal_Final.pdf`](assignment_1/HireMind_DL_Proposal_Final.pdf) |
+| **Item 2 — Milestones 1–2** (related work, data, M0 baseline) | [`assignment_2/`](assignment_2/) | [`HireMind_A2_Milestones_1_2.pdf`](assignment_2/HireMind_A2_Milestones_1_2.pdf) |
+| **Item 3 — Preliminary results** (validation only) | [`assignment_3/`](assignment_3/) | [`HireMind_Assignment_3.pdf`](assignment_3/HireMind_Assignment_3.pdf) |
+| **Item 4 — Final research project** (held-out test) | [`assignment_4/`](assignment_4/) | [`HireMind_Final_Report.pdf`](assignment_4/HireMind_Final_Report.pdf) · [slides](assignment_4/HireMind_Presentation.pdf) · [poster](assignment_4/HireMind_A1_Poster.pdf) |
 
 ## Models
 
@@ -50,7 +53,7 @@ on our CPU.
 - M2 is 73.38% smaller but 13.46% slower on the measured CPU (one thread, batch 1).
 - Good Fit recall is low; at seed 44, M2 finds 7 of 458 Good Fit pairs. The model must not be used to reject candidates automatically.
 
-Source files: [`assignment_4/results/`](assignment_4/results/). Validation-stage results (Item 2 and Item 3) are in [`results/`](results/) and [`assignment_3/item3_evidence/`](assignment_3/item3_evidence/).
+Source files: [`assignment_4/results/`](assignment_4/results/). Validation-stage results are in [`assignment_2/results/`](assignment_2/results/) (Item 2) and [`assignment_3/item3_evidence/`](assignment_3/item3_evidence/) (Item 3).
 
 ## Dataset
 
@@ -98,9 +101,9 @@ python scripts/quantize_m2.py --all-variants  # M2 + one-factor quantization abl
 python scripts/evaluate.py --split validation --benchmark   # Tables 2-3, Figure 1
 python scripts/evaluate.py --split test --benchmark         # Table 5 and hypotheses (run once, after selection)
 ```
-Outputs go to `results/reproduced/` (`*_per_seed.csv`, `*_confusions.json`, `*_summary.csv`); the test command also prints the difference from the published per-seed results. The `--search` steps can be skipped because the selected values are already in the config. Exact numbers can differ slightly on other GPUs or library builds; CPU latency depends on the processor.
+Outputs go to `outputs/` (`*_per_seed.csv`, `*_confusions.json`, `*_summary.csv`); the test command also prints the difference from the published per-seed results. The `--search` steps can be skipped because the selected values are already in the config. Exact numbers can differ slightly on other GPUs or library builds; CPU latency depends on the processor.
 
-The original Colab notebooks are kept as the record of the actual runs: [`notebooks/HireMind_M0_Baseline.ipynb`](notebooks/HireMind_M0_Baseline.ipynb) (Item 2), [`assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb`](assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb) (teacher, M1, M2, validation) and [`assignment_4/code/HireMind_A4_Final_Evaluation.ipynb`](assignment_4/code/HireMind_A4_Final_Evaluation.ipynb) (held-out test). The scripts above use the same functions and settings without the Google Drive and crash-recovery code.
+The original Colab notebooks are kept as the record of the actual runs: [`assignment_2/notebooks/HireMind_M0_Baseline.ipynb`](assignment_2/notebooks/HireMind_M0_Baseline.ipynb) (Item 2), [`assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb`](assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb) (teacher, M1, M2, validation) and [`assignment_4/code/HireMind_A4_Final_Evaluation.ipynb`](assignment_4/code/HireMind_A4_Final_Evaluation.ipynb) (held-out test). The scripts above use the same functions and settings without the Google Drive and crash-recovery code.
 
 ### Where each table and figure comes from (Item 4 paper)
 
@@ -116,7 +119,7 @@ The original Colab notebooks are kept as the record of the actual runs: [`notebo
 | Figure 3, test confusion (M2 seed 44) | `assignment_4/results/confusions.json` | `assignment_4/code/plot_test.py` | `evaluate.py --split test` |
 | H1/H2 checks | `assignment_4/results/hypotheses.json`, `paired_changes.csv` | `reproduce_paper_tables.py` | `evaluate.py --split test --benchmark` |
 
-Item 2 figures (`figures/`) and results (`results/`) come from the M0 notebook.
+Item 2 figures and results (`assignment_2/paper/figures/`, `assignment_2/results/`) come from the M0 notebook.
 
 ### Tested
 
@@ -137,25 +140,25 @@ Last tested run (8 November 2026, Ubuntu, Python 3.13, CPU only): all steps pass
 
 - **Held-out test (final):** [`assignment_4/results/`](assignment_4/results/): `per_seed.csv`, `summary_mean_sample_SD.csv`, `confusions.json`, `paired_changes.csv`, `hypotheses.json`, `final_freeze.json` (frozen choices made before the test was opened).
 - **Validation (Item 3):** [`assignment_3/item3_evidence/`](assignment_3/item3_evidence/): `reports/validation/`, `quantization/`, `temperature_ablation.json`, `protocol.json`.
-- **Item 2 M0 baseline:** [`results/`](results/).
-- **Your re-runs:** `results/reproduced/` (created by the scripts, not committed).
+- **Item 2 M0 baseline:** [`assignment_2/results/`](assignment_2/results/).
+- **Your re-runs:** `outputs/` (created by the scripts, not committed).
 
 ## Repository structure
 
 ```
-configs/experiment.json   frozen protocol, search grids, selected hyperparameters
-src/hiremind_dl/          splits.py (cleaning + split), data.py (download, checks, tokenization),
+assignment_1/             Item 1: proposal (PDF + LaTeX), AI review, literature pack
+assignment_2/             Item 2: milestones report (PDF + LaTeX + figures), M0 notebook, results, audit/benchmark scripts
+assignment_3/             Item 3: preliminary-results paper, notebook, validation evidence (item3_evidence/)
+assignment_4/             Item 4: final paper, slides, poster, test evaluation notebook and code, test results
+src/hiremind_dl/          shared code: splits.py (cleaning + split), data.py (download, checks, tokenization),
                           models.py (student/teacher, KD loss), training.py, evaluation.py,
                           quantization.py (M2), benchmark.py (size, MACs, CPU latency)
-scripts/                  CLI: build_splits, prepare_data, train, quantize_m2, evaluate,
-                          reproduce_paper_tables, smoke_test (+ Item 2 audit/benchmark/figure scripts)
-splits/                   frozen train/validation/test row IDs and manifest
-requirements.txt          pinned package versions
-proposal/  literature/    Item 1
-report/ notebooks/ results/ figures/   Item 2
-assignment_3/             Item 3 paper, notebook, validation evidence
-assignment_4/             Item 4 paper, slides, poster, test evaluation notebook, test results
+scripts/                  command-line pipeline: build_splits, prepare_data, train, quantize_m2,
+                          evaluate, reproduce_paper_tables, smoke_test
+configs/experiment.json   frozen protocol, search grids, selected hyperparameters
+splits/                   frozen train/validation/test row IDs and manifest (used by Items 2-4)
 data/README.md            dataset link and limitations (no raw data)
+requirements.txt          pinned package versions
 ```
 
 ## AI assistance

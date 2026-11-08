@@ -4,8 +4,8 @@ No GPU, model weights or dataset download is needed:
 
     python scripts/reproduce_paper_tables.py
 
-Tables are printed and written to results/reproduced/paper_tables.md; the four figures are
-written to results/reproduced/figures/. Each check compares against the numbers in the papers.
+Tables are printed and written to outputs/paper_tables.md; figures go to outputs/figures/
+and assignment_3/reproduced/figures/. Each check compares against the numbers in the papers.
 """
 import json
 import subprocess
@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "results" / "reproduced"
+OUT = ROOT / "outputs"
 VAL = ROOT / "assignment_3/item3_evidence/reports/validation"
 TEST = ROOT / "assignment_4/results"
 lines = []

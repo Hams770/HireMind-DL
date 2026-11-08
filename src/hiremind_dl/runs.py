@@ -8,7 +8,7 @@ from . import ROOT
 
 CACHE = ROOT / "data" / "cache"
 RUNS = ROOT / "runs"
-OUT = ROOT / "results" / "reproduced"
+OUT = ROOT / "outputs"
 
 
 def device(name="auto"):

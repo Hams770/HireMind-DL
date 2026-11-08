@@ -23,5 +23,5 @@ private/
 # Outputs of the reproduction scripts (regenerated on demand)
 data/cache/
 runs/
-results/reproduced/
+outputs/
 assignment_3/reproduced/
