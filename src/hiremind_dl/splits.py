@@ -1,7 +1,7 @@
 """HireMind DL - dataset audit, cleaning and grouped train/validation/test split.
 
-Pure pandas / scikit-learn (no PyTorch). Used by scripts/build_splits.py and
-(through scripts/data_prep.py) by notebooks/HireMind_M0_Baseline.ipynb.
+Pure pandas / scikit-learn (no PyTorch). Used by scripts/build_splits.py and embedded in
+assignment_2/notebooks/HireMind_M0_Baseline.ipynb (as data_prep.py).
 
 Split policy (fixed before any model training):
   * IDs: cv_id / job_id = first 16 hex chars of SHA-256 of whitespace-normalised, lower-cased text.

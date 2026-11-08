@@ -3,7 +3,7 @@
     python scripts/evaluate.py --split validation
     python scripts/evaluate.py --split test --benchmark      # Item 4 Table + CPU cost
 
-Writes results/reproduced/<split>_per_seed.csv, <split>_confusions.json and
+Writes outputs/<split>_per_seed.csv, <split>_confusions.json and
 <split>_summary.csv (mean and sample SD over seeds). For the test split it also prints the
 difference from the published numbers in assignment_4/results/per_seed.csv.
 Test results must not be used to choose anything (see "rule" in configs/experiment.json).

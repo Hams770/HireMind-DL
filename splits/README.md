@@ -1,6 +1,6 @@
 # Data splits
 
-`splits.csv` and `manifest.json` are produced by `notebooks/HireMind_M0_Baseline.ipynb` (section 3) and contain **IDs only, no CV or job text**.
+`splits.csv` and `manifest.json` are produced by [`assignment_2/notebooks/HireMind_M0_Baseline.ipynb`](../assignment_2/notebooks/HireMind_M0_Baseline.ipynb) (section 3) and can be rebuilt with `python scripts/build_splits.py` and contain **IDs only, no CV or job text**.
 
 | Column | Meaning |
 |---|---|
