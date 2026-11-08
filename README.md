@@ -15,7 +15,9 @@ classifier, and can post-training quantization reduce its cost while keeping use
 BERT-Tiny baseline (M0) and the distilled student (M1), quantizes M1 into M2, scores all three on
 validation and test, and measures their size and CPU latency. **Answer:** distillation did not help
 (test macro-F1 −1.82 points); quantization made the model 73% smaller with no quality loss, but 13% slower
-on our CPU. Quick start: [Installation](#installation) → [How to reproduce](#how-to-reproduce).
+on our CPU.
+
+**Contents:** [Deliverables](#deliverables-by-assignment) · [Models](#models) · [Final results](#final-results-held-out-test-1759-pairs-mean--sample-sd-over-seeds-42-43-44) · [Dataset](#dataset) · [Installation](#installation) · [How to reproduce](#how-to-reproduce) · [Hardware](#hardware-and-compute) · [Where the results are](#where-the-final-results-are) · [Structure](#repository-structure)
 
 ## Deliverables by assignment
 
@@ -74,7 +76,7 @@ python scripts/smoke_test.py     # about 1 minute; must print SMOKE TEST PASSED
 
 All settings come from [`configs/experiment.json`](configs/experiment.json): the frozen protocol (seeds 42, 43, 44; batch 16; 3 epochs = 939 updates; AdamW, weight decay 0.01; 10% warm-up; clipping 1.0; validation every 100 updates; 256 tokens), the search grids and the selected values (M0 lr 1e-4; teacher lr 5e-5; M1 lr 5e-5, T = 2, alpha 0.5).
 
-**Option A, check every published table and figure (2 minutes, no GPU, no download):**
+**Option A, check every published table and figure (about 2 minutes, no GPU, no dataset or weights needed):**
 ```sh
 pip install numpy==2.1.3 pandas==2.2.3 matplotlib==3.10.1 tabulate==0.9.0   # or the full requirements
 python scripts/reproduce_paper_tables.py
