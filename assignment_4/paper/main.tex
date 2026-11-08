@@ -5,7 +5,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{microtype,amsmath,booktabs,graphicx,tabularx,array}
 \title{HireMind: Efficient CV--Job Fit Classification\\through Distillation and Quantization\\[4pt]\large Item 4 --- Final Experimental Results}
-\author{Rawan Khojah \quad Hams Aljohani\\Effat University\\CS4085 Deep Learning}
+\author{Rawan Khojah (S22107688) \quad Hams Aljohani (S20106833)\\Effat University\\CS4085 Deep Learning\\Instructor: Dr.\ Naila Marir}
 \hypersetup{pdftitle={HireMind: Final Experimental Results},pdfauthor={Rawan Khojah and Hams Aljohani}}
 \begin{document}
 \maketitle
@@ -39,9 +39,9 @@ The development runner downloads the pinned training CSV, verifies its SHA-256, 
 
 \textbf{M1.} The same student is trained with
 \begin{equation}
-L=0.5L_{\mathrm{CE}}+0.5T^2\mathrm{KL}(p_T\Vert p_S),
+L=0.5L_{\mathrm{CE}}+0.5T^2\mathrm{KL}(p_{\mathrm{t}}\Vert p_{\mathrm{s}}),
 \end{equation}
-where teacher and student probabilities use temperature $T$. A BERT-base teacher is fine-tuned only on the training partition, selected by validation macro-F1, and frozen. Its training logits are cached in evaluation mode. No validation or test labels enter the distillation targets. A weak teacher is reported as a limitation; the method is not replaced after seeing an unfavourable result.
+where $p_{\mathrm{t}}$ and $p_{\mathrm{s}}$ are the teacher and student probabilities at temperature $T$. A BERT-base teacher is fine-tuned only on the training partition, selected by validation macro-F1, and frozen. Its training logits are cached in evaluation mode. No validation or test labels enter the distillation targets. A weak teacher is reported as a limitation; the method is not replaced after seeing an unfavourable result.
 
 \textbf{M2.} M1 is converted on CPU using dynamic INT8 Linear layers and 8-bit weight-only embeddings with floating per-row quantization parameters. LayerNorm remains FP32. There is no additional training. The same scalar weights remain logically present; quantization changes their representation, not the architectural parameter count or dense MAC estimate. M1 already has M0's small architecture, so distillation alone does not reduce M0's inference cost and incurs extra teacher training.
 
@@ -146,11 +146,11 @@ H1 fails: mean M1 minus M0 macro-F1 is $-1.82$ points against a required gain of
 \caption{Held-out M2, seed 44. Rows are true classes and columns predicted classes. Counts describe one checkpoint, selected here to illustrate a failure.}\end{figure}
 At seed 44, M2 identifies seven of 458 Good Fit pairs and assigns 419 to No Fit. M1 already has only 1.97\% Good Fit recall at this seed. The failure therefore predates quantization. The held-out error counts describe model behaviour; they cannot identify the cause of a particular mismatch without examining the text.
 \section{Discussion}
-The observed benefit is reduced model-state storage at a modest validation macro-F1 loss. Distillation does not provide the intended quality improvement, and quantization does not provide CPU speedup on the measured hardware. Consequently, M2 cannot be described as preserving a positive M1 advantage over M0: there is no positive mean advantage in this validation comparison. The held-out evaluation below tests the frozen hypotheses.
+On the held-out test, the observed benefit is reduced model-state storage without a mean macro-F1 loss relative to M1. Distillation does not provide the intended quality improvement, and quantization does not provide CPU speedup on the measured hardware. Consequently, M2 cannot be described as preserving a positive M1 advantage over M0, because M1 has no positive mean advantage. Test macro-F1 is also lower than validation macro-F1 for every model (M0 falls from 40.01 to 33.70). Checkpoints and learning rates were selected on validation data, so validation scores are optimistic, and the test scores are the better estimate of performance on new jobs.
 
 TinyBERT and DistilBERT demonstrate that distillation can transfer useful representations in other settings \citep{tinybert,distilbert}. Our small student uses task logits from one fine-tuned teacher and shows no mean test gain. Different datasets, objectives and training budgets preclude a direct score comparison. Our observed size reduction is consistent with the compression goal of Q8BERT \citep{q8}; the latency measurements show why a deployment claim also requires testing the target CPU.
 
-Seed sensitivity is substantial on validation. Good Fit recall for M1 is 30.80\%, 32.87\% and 0.69\% across seeds 42--44; M2 yields 31.14\%, 30.45\% and 0.35\%. The seed-44 model nearly misses that class altogether. Confusion matrices and class reports expose this weakness even though overall accuracy is close to 48\%. The figures support caution about reliability and preclude an automated rejection claim. They do not alone establish why examples are misclassified.
+Seed sensitivity is substantial. On the test set, Good Fit recall for M1 is 16.38\%, 19.21\% and 1.97\% across seeds 42--44; M2 yields 16.38\%, 20.52\% and 1.53\%. The seed-44 models nearly miss that class altogether, even though their test accuracy is close to 48\%. The figures support caution about reliability and preclude an automated rejection claim. They do not alone establish why examples are misclassified.
 
 Possible explanations include limited Teacher quality, sensitivity to initialization and data order, class imbalance, truncation and uncertain labels. These have not been experimentally isolated. After training, both authors independently assessed the same 90 training pairs and reviewed validation errors. These post-hoc reviews did not change the labels used for training. We report no numerical agreement statistic.
 
@@ -163,16 +163,16 @@ The recruitment problem, terminology and workflow are reused from Senior. The co
 \section{Conclusion}
 The compact quantized state satisfies the storage target on every seed. The supervised baseline achieves the highest mean held-out macro-F1, while the quantized student is slower on the measured CPU. A subsequent study could test longer inputs on a new evaluation cohort and compare the advisory model with the Senior workflow under recruiter review. The 512-token setting remains untested.
 \section*{Author Contributions}
-Both authors independently reviewed the same 90 training pairs and examined validation errors. Hams Aljohani contributed the earlier project repository. Rawan Khojah maintained the submission fork and ran the final evaluation in Colab.
+Hams Aljohani audited and cleaned the dataset, built the job-grouped train/validation/test split, implemented and trained the M0 baseline (learning-rate search, overfit-one-batch test, three seeds), measured its CPU cost, and set up the project repository.
+Rawan Khojah fine-tuned and recovered the BERT-base teacher, trained the distilled M1 students, built and benchmarked the quantized M2 variants, and ran the frozen held-out evaluation.
+Both authors independently reviewed the same 90 training pairs, examined validation errors, and prepared the paper, slides and poster together.
+
 \section*{AI Assistance and Author Review}
-ChatGPT assisted with code restructuring, debugging, recovery checks, figures, held-out metric verification and preparation of the paper, slides and poster. Earlier project materials disclose Claude assistance with paper checks, dataset research, workspace setup and planning. All experimental measurements come from the saved Colab runs. The authors conducted the independent label audit and qualitative error review.
+ChatGPT and Claude were used for code debugging and language editing. All experiments, results and conclusions were produced and verified by the authors.
 
-\section*{Reproducibility and Submission Status}
-The companion materials include the visible-code SetupFixed notebook, frozen split identifiers, protocol, validation results, CPU benchmark records, and figure reproduction script. Historical execution records are preserved separately from the clean notebook.
+\section*{Reproducibility}
+The repository contains the training and evaluation notebooks, the frozen data splits, the experiment settings, the validation and test results, the CPU benchmark records and scripts that reproduce the tables and figures. Code and results: \url{https://github.com/RAWANKHOJAH/HireMind-DL} (folders \texttt{assignment\_3} and \texttt{assignment\_4}).
 
-Project repository: \url{https://github.com/RAWANKHOJAH/HireMind-DL}. The Assignment 3 materials are organized in \texttt{assignment\_3/}. The accompanying Item 4 package includes the frozen evaluation, nine test records summarized by seed, and class confusion matrices.
-
-\clearpage
 \balance
 \begin{thebibliography}{9}
 \bibitem[Bondarenko et al.(2021)]{bondarenko} Yelysei Bondarenko, Markus Nagel, and Tijmen Blankevoort. 2021. Understanding and Overcoming the Challenges of Efficient Transformer Quantization. \emph{EMNLP}, pages 7947--7969. DOI: 10.18653/v1/2021.emnlp-main.627.

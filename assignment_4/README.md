@@ -1,9 +1,9 @@
 # HireMind | CS4085 final research project
 Rawan Khojah and Hams Aljohani · Effat University
 
-Report: [HireMind_Final_Report.pdf](HireMind_Final_Report.pdf) · Item 3 materials: [../assignment_3](../assignment_3/) · Project overview: [../README.md](../README.md)
+Report: [HireMind_Final_Report.pdf](HireMind_Final_Report.pdf) · Slides: [PPTX](HireMind_Presentation.pptx) / [PDF](HireMind_Presentation.pdf) · Poster: [HireMind_A1_Poster.pdf](HireMind_A1_Poster.pdf) · Item 3 materials: [../assignment_3](../assignment_3/) · Project overview: [../README.md](../README.md)
 
-The paper compares supervised BERT-Tiny (M0), a distilled student (M1) and its quantized state (M2) for three-way CV–job compatibility. This folder includes the report, evaluation code, editable paper source and saved evidence. The nine held-out evaluations are complete.
+The paper compares supervised BERT-Tiny (M0), a distilled student (M1) and its quantized state (M2) for three-way CV–job compatibility. This folder includes the report, slides, A1 poster, evaluation code, editable paper source and saved evidence. The nine held-out evaluations are complete.
 
 ## Reproduce the published measurements from saved evidence
 From this directory, in a Python environment with pandas, NumPy and matplotlib:
@@ -33,7 +33,7 @@ For the reference implementation and original training entry points, use the cor
 For provenance, code/HireMind_A4_Final_Evaluation.ipynb contains the setup and definitions plus the successful resume implementation in the last cell, disabled by default. code/HireMind_A4_Resume.py preserves the historical Colab cell; it depends on the notebook namespace and the private existing freeze and weights. Do not execute it as a standalone script or rerun this cohort for tuning. The held-out table uses saved test predictions; CPU timings were copied from the matched benchmark, not remeasured using test pairs.
 
 ## Oral defense practice
-The speaker notes assign both team members roles totaling 12 minutes 40 seconds before questions. Time one full rehearsal. Both should be able to answer: Why macro-F1 rather than accuracy? How can a smaller model run slower? Why does M1 seed 44 matter for interpreting M2 errors? Why did the missing H1 gain prevent confirming retention? What does cross-split CV overlap allow you to claim?
+The speaker notes give a full script for each slide and assign both team members roles totaling about 13 minutes 20 seconds before questions. Time one full rehearsal. Both should be able to answer: Why macro-F1 rather than accuracy? How can a smaller model run slower? Why does M1 seed 44 matter for interpreting M2 errors? Why did the missing H1 gain prevent confirming retention? What does cross-split CV overlap allow you to claim?
 
 ## AI assistance log
-Earlier materials disclose Claude assistance with planning, dataset research and paper checks. ChatGPT assisted with code restructuring and debugging, recovery checks, validation figures, verifying saved test results, report adaptation, slide and poster preparation, and packaging. Both authors are responsible for verifying technical explanations, citations, their actual contributions and compliance with the course-wide 25% cap on each submitted work.
+ChatGPT and Claude were used for code debugging and language editing. All experiments, results and conclusions were produced and verified by the authors.
