@@ -1,0 +1,15 @@
+{
+  "teacher_tag": "teacher_s42_lr5e-05",
+  "original_weights_sha256": "de33a4a306f3b651dbde6176067fa813c931eb18a30c52e0f62787566b43b13d",
+  "recovered_weights": "/content/drive/MyDrive/HireMind_Continuation_v2/private/checkpoints/teacher_s42_lr5e-05_b6e6abd3.pt",
+  "recovered_weights_sha256": "7df4fb559569ccf8efe1ec105617cd92d961e336986ca7a21a80c53781d95dbc",
+  "cached_targets_sha256": "cee1e2b9c1c0fc0bd55fe26e6eca683ef4f3478336efdb1bef2be9a0049f5ded",
+  "examples_checked": 4993,
+  "scope": "Original cached training examples, in the verified row order.",
+  "logits_exactly_equal": true,
+  "maximum_absolute_difference": 0.0,
+  "predicted_class_agreement_percent": 100.0,
+  "byte_identical_weight_files": false,
+  "original_targets_preserved": true,
+  "verified_at": "2026-10-31T21:13:11.108553+00:00"
+}
