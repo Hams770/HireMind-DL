@@ -1,8 +1,8 @@
 # HireMind DL — Efficient CV–Job Fit Classification through Distillation and Quantization
 
 **CS4085 Deep Learning · Effat University · Fall 2026**
-**Team:** Rawan Khojah · Hams Aljohani
-**Instructor:** Dr Naila Marir
+**Team:** Rawan Khojah (S22107688) · Hams Aljohani (S20106833)
+**Instructor:** Dr. Naila Marir
 
 HireMind is our Senior project, an AI-assisted recruitment platform. This Deep Learning project studies one
 component it could use: a small model that reads a **CV and a job description** and predicts
@@ -18,7 +18,7 @@ classifier, and can post-training quantization reduce its cost while keeping use
 | **Item 1 — Proposal** | [`proposal/HireMind_DL_Proposal_Final.pdf`](proposal/HireMind_DL_Proposal_Final.pdf) | [`proposal/`](proposal/) (LaTeX source, AI review, Prompt C check) · [`literature/`](literature/) |
 | **Item 2 — Milestones 1–2** (related work, data, M0 baseline) | [`report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf`](report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf) | [`notebooks/`](notebooks/) · [`scripts/`](scripts/) · [`splits/`](splits/) · [`results/`](results/) · [`figures/`](figures/) |
 | **Item 3 — Preliminary results** (validation only) | [`assignment_3/HireMind_Assignment_3.pdf`](assignment_3/HireMind_Assignment_3.pdf) | [`assignment_3/`](assignment_3/) — notebook, saved evidence, paper source · [README](assignment_3/README.md) |
-| **Item 4 — Final research project** (held-out test) | [`assignment_4/HireMind_Final_Report.pdf`](assignment_4/HireMind_Final_Report.pdf) | [`assignment_4/`](assignment_4/) — evaluation notebook, verification scripts, results · [README](assignment_4/README.md) |
+| **Item 4 — Final research project** (held-out test) | [`assignment_4/HireMind_Final_Report.pdf`](assignment_4/HireMind_Final_Report.pdf) · [slides](assignment_4/HireMind_Presentation.pdf) · [poster](assignment_4/HireMind_A1_Poster.pdf) | [`assignment_4/`](assignment_4/) — evaluation notebook, verification scripts, results · [README](assignment_4/README.md) |
 
 ## Models
 
@@ -87,7 +87,7 @@ assignment_4/          Item 4 report, evaluation code, test results, paper sourc
 
 ## AI assistance
 
-AI tools (Claude and ChatGPT) assisted with planning, code debugging, figures and writing. Details are in each report's AI assistance section and in [`assignment_4/README.md`](assignment_4/README.md). All results come from the team's own runs.
+ChatGPT and Claude were used for code debugging and language editing. All experiments, results and conclusions were produced and verified by the authors.
 
 ## Links
 
