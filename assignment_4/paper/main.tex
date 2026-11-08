@@ -5,7 +5,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{microtype,amsmath,booktabs,graphicx,tabularx,array}
 \title{HireMind: Efficient CV--Job Fit Classification\\through Distillation and Quantization\\[4pt]\large Item 4 --- Final Experimental Results}
-\author{Rawan Khojah \quad Hams Aljohani\\Effat University\\CS4085 Deep Learning}
+\author{Rawan Khojah (S22107688) \quad Hams Aljohani (S20106833)\\Effat University\\CS4085 Deep Learning\\Instructor: Dr.\ Naila Marir}
 \hypersetup{pdftitle={HireMind: Final Experimental Results},pdfauthor={Rawan Khojah and Hams Aljohani}}
 \begin{document}
 \maketitle
@@ -163,16 +163,16 @@ The recruitment problem, terminology and workflow are reused from Senior. The co
 \section{Conclusion}
 The compact quantized state satisfies the storage target on every seed. The supervised baseline achieves the highest mean held-out macro-F1, while the quantized student is slower on the measured CPU. A subsequent study could test longer inputs on a new evaluation cohort and compare the advisory model with the Senior workflow under recruiter review. The 512-token setting remains untested.
 \section*{Author Contributions}
-Both authors independently reviewed the same 90 training pairs and examined validation errors. Hams Aljohani contributed the earlier project repository. Rawan Khojah maintained the submission fork and ran the final evaluation in Colab.
+Hams Aljohani audited and cleaned the dataset, built the job-grouped train/validation/test split, implemented and trained the M0 baseline (learning-rate search, overfit-one-batch test, three seeds), measured its CPU cost, and set up the project repository.
+Rawan Khojah fine-tuned and recovered the BERT-base teacher, trained the distilled M1 students, built and benchmarked the quantized M2 variants, and ran the frozen held-out evaluation.
+Both authors independently reviewed the same 90 training pairs, examined validation errors, and prepared the paper, slides and poster together.
+
 \section*{AI Assistance and Author Review}
-ChatGPT assisted with code restructuring, debugging, recovery checks, figures, held-out metric verification and preparation of the paper, slides and poster. Earlier project materials disclose Claude assistance with paper checks, dataset research, workspace setup and planning. All experimental measurements come from the saved Colab runs. The authors conducted the independent label audit and qualitative error review.
+ChatGPT and Claude were used for code debugging and language editing. All experiments, results and conclusions were produced and verified by the authors.
 
-\section*{Reproducibility and Submission Status}
-The companion materials include the visible-code SetupFixed notebook, frozen split identifiers, protocol, validation results, CPU benchmark records, and figure reproduction script. Historical execution records are preserved separately from the clean notebook.
+\section*{Reproducibility}
+The repository contains the training and evaluation notebooks, the frozen data splits, the experiment settings, the validation and test results, the CPU benchmark records and scripts that reproduce the tables and figures. Code and results: \url{https://github.com/RAWANKHOJAH/HireMind-DL} (folders \texttt{assignment\_3} and \texttt{assignment\_4}).
 
-Project repository: \url{https://github.com/RAWANKHOJAH/HireMind-DL}. The Assignment 3 materials are organized in \texttt{assignment\_3/}. The accompanying Item 4 package includes the frozen evaluation, nine test records summarized by seed, and class confusion matrices.
-
-\clearpage
 \balance
 \begin{thebibliography}{9}
 \bibitem[Bondarenko et al.(2021)]{bondarenko} Yelysei Bondarenko, Markus Nagel, and Tijmen Blankevoort. 2021. Understanding and Overcoming the Challenges of Efficient Transformer Quantization. \emph{EMNLP}, pages 7947--7969. DOI: 10.18653/v1/2021.emnlp-main.627.
