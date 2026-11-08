@@ -19,3 +19,9 @@ __pycache__/
 # Notebook private outputs (raw text, checkpoints)
 private/
 !splits/splits.csv
+
+# Outputs of the reproduction scripts (regenerated on demand)
+data/cache/
+runs/
+results/reproduced/
+assignment_3/reproduced/

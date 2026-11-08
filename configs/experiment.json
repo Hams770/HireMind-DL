@@ -1,0 +1,66 @@
+{
+  "_comment": "Frozen experiment configuration used for every result in the Item 3 and Item 4 papers. Copied from assignment_4/results/final_freeze.json (protocol) plus the hyperparameters selected on validation.",
+  "dataset": {
+    "name": "cnamuangtoun/resume-job-description-fit",
+    "revision": "08978e21714984bb417547d2c0f9b477f5298163",
+    "train_csv_sha256": "b86fa488a21258015de1750633a9ac410f701ff96bf533f68978dbe3adec6d40",
+    "test_csv_sha256": "f3c48f4cc3559bf192ebb9c241a30c601b5b8b3eee6f1656dd4d26dfd4b0887a",
+    "split_file": "splits/splits.csv",
+    "split_sha256": "2ff3926c70152e6d5f47fbf40acebbb287e3311969618a8c7a20f45861539f9b",
+    "split_seed": 42,
+    "rows": {"train": 4993, "validation": 1162, "test": 1759}
+  },
+  "labels": ["No Fit", "Potential Fit", "Good Fit"],
+  "student": {
+    "name": "google/bert_uncased_L-2_H-128_A-2",
+    "revision": "30b0a37ccaaa32f332884b96992754e246e48c5f"
+  },
+  "teacher": {
+    "name": "google-bert/bert-base-uncased",
+    "revision": "main",
+    "_note": "The original run recorded the resolved commit in a private teacher_source.json; the teacher is used only to produce training targets for M1."
+  },
+  "tokenization": {"max_len": 256, "truncation": "longest_first", "padding": "max_length", "tokenizer": "student"},
+  "training": {
+    "batch": 16,
+    "epochs": 3,
+    "updates": 939,
+    "eval_every": 100,
+    "optimizer": "AdamW",
+    "weight_decay": 0.01,
+    "clip_norm": 1.0,
+    "warmup_fraction": 0.1,
+    "schedule": "linear",
+    "precision": "float32",
+    "teacher_micro_batch": 4,
+    "student_micro_batch": 16,
+    "validation_batch": 16,
+    "checkpoint_rule": "within a run, keep the first evaluation with the highest validation macro-F1",
+    "selection_rule": "across learning rates / temperatures (seed 42), pick the highest best-checkpoint macro-F1; ties: lower validation loss"
+  },
+  "seeds": [42, 43, 44],
+  "search": {
+    "seed": 42,
+    "m0_lrs": [2e-05, 5e-05, 0.0001, 0.0003],
+    "teacher_lrs": [2e-05, 5e-05],
+    "m1_lrs": [5e-05, 0.0001],
+    "temperatures": [2.0, 4.0],
+    "temperature_ablation": 1.0
+  },
+  "selected": {
+    "M0": {"lr": 0.0001},
+    "teacher": {"lr": 5e-05, "seed": 42},
+    "M1": {"lr": 5e-05, "temperature": 2.0, "alpha": 0.5},
+    "M2": {"source": "M1", "variant": "both", "linear": "dynamic INT8 (default_dynamic_qconfig)", "embeddings": "8-bit weight-only (float_qparams_weight_only_qconfig)"}
+  },
+  "benchmark": {
+    "device": "cpu",
+    "threads": 1,
+    "batch_size": 1,
+    "examples": 20,
+    "example_source": "validation.sample(n=20, random_state=42)",
+    "warmup": 30,
+    "timed": 200
+  },
+  "rule": "No selection or tuning using test. H1/H2 assessed on paired three-seed means. Ablations reported on validation."
+}

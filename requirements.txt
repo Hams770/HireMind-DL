@@ -1,9 +1,12 @@
-# Assignment 2 notebook (Google Colab already provides most of these)
-torch>=2.1
-transformers>=4.40
-datasets>=2.19
-huggingface_hub
-scikit-learn
-pandas
-numpy
-matplotlib
+# Exact versions of the environment that trained and evaluated the models
+# (Google Colab, Python 3.13, Tesla T4, CUDA 13.0; see assignment_3/item3_evidence/temperature_ablation.json
+# "actual_environment" and assignment_3/item3_evidence/reproducibility/tested_versions.json).
+# CPU-only install:  pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.11.0
+transformers==4.51.3
+huggingface-hub==0.30.2
+numpy==2.1.3
+pandas==2.2.3
+scikit-learn==1.6.1
+matplotlib==3.10.1
+tabulate==0.9.0

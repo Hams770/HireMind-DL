@@ -1,6 +1,7 @@
 """Rebuild the report's held-out figure from aggregate counts; no inference."""
 from pathlib import Path
 import json
+import sys
 import matplotlib.pyplot as plt
 
 root = Path(__file__).resolve().parents[1]
@@ -14,4 +15,7 @@ for row, counts in enumerate(matrix):
     for col, count in enumerate(counts):
         ax.text(col, row, str(count), ha="center", va="center",
                 color="white" if count > 390 else "#17324d", fontsize=13)
-fig.savefig(root / "paper/figures/test_errors.png", dpi=220)
+out = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "paper/figures/test_errors.png"
+out.parent.mkdir(parents=True, exist_ok=True)
+fig.savefig(out, dpi=220)
+print("wrote", out)
