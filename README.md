@@ -4,114 +4,93 @@
 **Team:** Rawan Khojah · Hams Aljohani
 **Instructor:** Dr Naila Marir
 
-> **Assignment 4 — held-out results:** [Research report (PDF)](assignment_4/HireMind_Final_Report.pdf) · [Evaluation notebook](assignment_4/code/HireMind_A4_Final_Evaluation.ipynb) · [Results and reproduction instructions](assignment_4/README.md)
+HireMind is our Senior project, an AI-assisted recruitment platform. This Deep Learning project studies one
+component it could use: a small model that reads a **CV and a job description** and predicts
+**No Fit / Potential Fit / Good Fit**.
 
-> **Assignment 3 — preliminary validation results:** [Research report (PDF)](assignment_3/HireMind_Assignment_3.pdf) · [Corrected notebook](assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb) · [Results, figures and reproduction instructions](assignment_3/README.md)
+**Research question:** Can teacher-guided training (knowledge distillation) improve a compact CV–job fit
+classifier, and can post-training quantization reduce its cost while keeping useful performance?
 
-Earlier milestones: [Assignment 1 proposal](proposal/HireMind_DL_Proposal_Final.pdf) · [Assignment 2 baseline report](report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf).
+## Deliverables by assignment
 
-## Project description
+| Assignment | Main document | Code and evidence |
+|---|---|---|
+| **Item 1 — Proposal** | [`proposal/HireMind_DL_Proposal_Final.pdf`](proposal/HireMind_DL_Proposal_Final.pdf) | [`proposal/`](proposal/) (LaTeX source, AI review, Prompt C check) · [`literature/`](literature/) |
+| **Item 2 — Milestones 1–2** (related work, data, M0 baseline) | [`report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf`](report/milestones_1_2/HireMind_A2_Milestones_1_2.pdf) | [`notebooks/`](notebooks/) · [`scripts/`](scripts/) · [`splits/`](splits/) · [`results/`](results/) · [`figures/`](figures/) |
+| **Item 3 — Preliminary results** (validation only) | [`assignment_3/HireMind_Assignment_3.pdf`](assignment_3/HireMind_Assignment_3.pdf) | [`assignment_3/`](assignment_3/) — notebook, saved evidence, paper source · [README](assignment_3/README.md) |
+| **Item 4 — Final research project** (held-out test) | [`assignment_4/HireMind_Final_Report.pdf`](assignment_4/HireMind_Final_Report.pdf) | [`assignment_4/`](assignment_4/) — evaluation notebook, verification scripts, results · [README](assignment_4/README.md) |
 
-HireMind is our Senior project: an AI-assisted recruitment platform. This Deep Learning project studies
-one component that HireMind could later use: a small model that reads a **CV and a job description**
-and predicts **No Fit / Potential Fit / Good Fit**.
-
-The project has two connected parts, as required by the course:
-
-| Part | What we investigate |
-|---|---|
-| **Part 1 — Deep learning** | Does teacher-guided training (knowledge distillation) improve a compact BERT classifier? |
-| **Part 2 — Efficiency** | Does post-training INT8 quantization make that model smaller while keeping the improvement? |
-
-**Research question:** Can teacher-guided training improve compact CV–job fit classification, and can
-quantization reduce model size while preserving the improvement?
-
-## Planned models
+## Models
 
 | Model | Definition |
 |---|---|
-| **Teacher** (support only) | `bert-base-uncased`, fine-tuned on the training split; its logits are cached for distillation |
-| **M0** — baseline | BERT-Tiny (`google/bert_uncased_L-2_H-128_A-2`, ≈4.4M parameters) trained with hard-label cross-entropy |
-| **M1** — DL change | Same student and initialization, trained with `0.5·CE + 0.5·T²·KL(teacher ‖ student)` |
-| **M2** — efficiency | CPU copy of M1 with dynamic INT8 Linear layers and 8-bit weight-only embeddings (post-training, no extra training) |
+| **Teacher** (support only) | `bert-base-uncased`, fine-tuned on the training split; its training logits are cached for distillation |
+| **M0** — baseline | BERT-Tiny (`google/bert_uncased_L-2_H-128_A-2`, 4,386,307 parameters) trained with cross-entropy |
+| **M1** — DL modification | Same student, trained with `0.5·CE + 0.5·T²·KL(teacher ‖ student)`, T = 2 |
+| **M2** — efficiency | CPU copy of M1 with dynamic INT8 Linear layers and 8-bit weight-only embeddings, no extra training |
 
-**Hypotheses (exploratory targets):**
-- **H1:** M1 improves test macro-F1 over M0 by at least 1.0 point.
-- **H2:** M2 is at least 60% smaller than M1, loses at most 1.0 macro-F1 point, and keeps at least half of M1's gain over M0.
+## Final results (held-out test, 1,759 pairs, mean ± sample SD over seeds 42, 43, 44)
 
-**Measurements:** macro-F1, accuracy, per-class scores, confusion matrix, parameter count, serialized size,
-MACs/FLOPs, CPU median/p95 latency and peak memory, measured on stated hardware under the same settings.
+| Model | Accuracy (%) | Macro-F1 (%) | Good Fit recall (%) | Saved state (MB) | CPU median (ms) |
+|---|---|---|---|---|---|
+| M0 | 45.33 ± 1.12 | **33.70 ± 3.92** | 16.16 | 17.559 | 5.502 |
+| M1 | 47.19 ± 0.82 | 31.88 ± 5.07 | 12.52 | 17.559 | 5.563 |
+| M2 | 47.60 ± 0.61 | 32.39 ± 5.23 | 12.81 | **4.675** | 6.311 |
+
+- **H1 (distillation gains ≥ 1 macro-F1 point): not met** — M1 − M0 = −1.82 points.
+- **H2 (M2 ≤ 40% of M1's size, ≤ 1 point loss):** both criteria met (size ratio 0.266, M2 − M1 = +0.51); gain retention is not confirmatory because H1 failed.
+- M2 is 73.38% smaller but 13.46% slower on the measured CPU (one thread, batch 1).
+- Good Fit recall is low; at seed 44, M2 finds 7 of 458 Good Fit pairs. The model must not be used to reject candidates automatically.
+
+Source files: [`assignment_4/results/`](assignment_4/results/). Validation-stage results (Item 2 and Item 3) are in [`results/`](results/) and [`assignment_3/item3_evidence/`](assignment_3/item3_evidence/).
+
+## Dataset and splits
+
+[`cnamuangtoun/resume-job-description-fit`](https://huggingface.co/datasets/cnamuangtoun/resume-job-description-fit), pinned revision `08978e21714984bb417547d2c0f9b477f5298163`.
+After cleaning: 4,993 training, 1,162 validation and 1,759 test pairs. Jobs never appear in two splits; 474 CVs appear in both training and test.
+Row IDs only (no text) are in [`splits/splits.csv`](splits/splits.csv); see [`splits/README.md`](splits/README.md) and [`data/README.md`](data/README.md).
+Raw CV text and model weights are not stored in this repository.
+
+## How to reproduce
+
+**Check the published tables and figures (no GPU, no weights):**
+```sh
+pip install pandas numpy matplotlib
+cd assignment_4
+python code/verify_tables.py        # recomputes all nine test results from the confusion matrices
+python code/plot_test.py            # rebuilds the error-analysis figure
+python reproduce_item3_figures.py   # rebuilds the validation figures
+```
+
+**Retrain the models (Google Colab, Tesla T4 GPU):**
+1. **M0 (Item 2):** open [`notebooks/HireMind_M0_Baseline.ipynb`](notebooks/HireMind_M0_Baseline.ipynb) in Colab and run all cells. It downloads the pinned dataset, audits it, builds the split, trains M0 and measures CPU cost.
+2. **Teacher, M1 and M2 (Item 3):** use [`assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb`](assignment_3/notebooks/HireMind_Assignments_2_3_4_SetupFixed.ipynb) with the versions in [`assignment_3/item3_evidence/reproducibility/`](assignment_3/item3_evidence/reproducibility/).
+3. **Held-out evaluation (Item 4):** [`assignment_4/code/HireMind_A4_Final_Evaluation.ipynb`](assignment_4/code/HireMind_A4_Final_Evaluation.ipynb). Configuration and frozen selections: [`assignment_4/results/final_freeze.json`](assignment_4/results/final_freeze.json).
+
+**Hardware:** training on a Tesla T4; CPU timing on an Intel Xeon 2.00 GHz, one PyTorch thread, batch 1, sequence length 256, 30 warm-up and 200 timed calls.
 
 ## Repository structure
 
-| Folder / file | Contents |
-|---|---|
-| `proposal/` | Final proposal PDF, `proposal.tex` (ACL format), `ai_review.tex` (AI review appendix), Prompt C check and the instructor's reviewer prompt |
-| `literature/` | `references.txt` and the research pack with our reading notes on the five papers |
-| `notebooks/` | `HireMind_M0_Baseline.ipynb` — Assignment 2: dataset audit, grouped split, overfit-one-batch test, M0 training, loss curves, parameters/MACs, CPU latency |
-| `scripts/` | `data_prep.py` (audit, cleaning, grouped split), `bench_cpu.py` (CPU latency/memory in a fresh process), `draw_architecture.py` (M0 diagram), `build_notebook.py` (regenerates the notebook), `audit_dataset.py` (Assignment 1 audit) |
-| `splits/` | `splits.csv` + `manifest.json` — exact train/validation/test row IDs (hashed, no text); see `splits/README.md` |
-| `figures/` | Architecture diagram and figures produced by the notebook |
-| `report/milestones_1_2/` | Assignment 2 report: `HireMind_A2_Milestones_1_2.pdf` and its source (`main.tex`, ACL format) |
-| `data/` | `README.md` with the dataset link, inspected version and known limitations. **Raw data is not stored here.** |
-| `results/` | `dataset_audit.json` (Assignment 1) and, after the notebook runs, `dataset_stats.json`, `m0_baseline.json`, `m0_cpu_bench.json` — **validation results only** |
+```
+proposal/              Item 1 proposal (PDF + LaTeX)
+literature/            reading notes and references
+report/milestones_1_2/ Item 2 report (PDF + LaTeX + figures)
+notebooks/             Item 2 M0 notebook
+scripts/               data audit, cleaning and split, CPU benchmark, architecture figure
+splits/                frozen train/validation/test row IDs
+results/               Item 2 validation results (M0, dataset audit)
+figures/               Item 2 figures
+data/                  dataset link and limitations (no raw data)
+assignment_3/          Item 3 report, notebook, validation evidence, paper source
+assignment_4/          Item 4 report, evaluation code, test results, paper source
+```
 
-## Reproduce
+## AI assistance
 
-**Assignment 2 (M0 baseline).** Open `notebooks/HireMind_M0_Baseline.ipynb` in Google Colab
-(`File → Open notebook → GitHub → Hams770/HireMind-DL`), choose `Runtime → Change runtime type → T4 GPU`,
-then `Runtime → Run all`. The notebook:
-
-1. downloads the dataset at the pinned revision `08978e21714984bb417547d2c0f9b477f5298163` and checks the SHA-256 hashes;
-2. audits classes, duplicates, near-duplicates and train/test overlap, and plots the statistics;
-3. builds the job-grouped train/validation split (seed 42) and saves the row IDs;
-4. trains simple references and M0 (learning-rate search on validation, then seeds 43 and 44), with an overfit-one-batch test;
-5. measures parameters, MACs, saved size, CPU latency and memory;
-6. downloads `HireMind_A2_outputs.zip` with figures, JSON results, split IDs and `tex/report_numbers.tex` for the report.
-
-The test set is **not** evaluated in Assignment 2. Raw CV text and checkpoints stay in the notebook's `private/` folder and are never committed.
-
-Local alternative: `pip install -r requirements.txt`, then run the notebook with Jupyter.
-
-**Assignment 1 audit.** `python scripts/audit_dataset.py data/raw/train.csv data/raw/test.csv --output results/dataset_audit.json`
-
-## Progress
-
-| Item | Status |
-|---|---|
-| Five-paper review and research question | ✅ Done |
-| Dataset structure audit | ✅ Done  |
-| item 1 proposal (M0/M1/M2, H1/H2) | ✅  |
-| Prompt C hypothesis check | ✅ Done  |
-| Presentation format | ✅ Technical Report |
-| New-chat AI review (proposal appendix) | ✅ Done — 83/100 |
-| Dataset provenance, licence and label origin | ⚠️ treated as a limitation |
-| item 2 : 9-paper comparison, research gap, dataset analysis, split code | ✅  |
-| item 2: M0 architecture diagram, parameters and MACs | ✅ Ready |
-| item 2: M0 training, overfit test, loss curves, cost | ✅ Done |
-| 90-pair label check | Completed independently after training, as confirmed by the team |
-| Teacher, M1 distillation and M2 quantization | Completed for Assignment 3 validation |
-| Assignment 4 held-out evaluation | Completed and published with report, code and results; author review and submission details pending |
-| Assignment 4 presentation and poster | Publication deferred by the authors |
-
-### M0 baseline (validation split, BERT-Tiny, 256 tokens)
-
-| Model | Macro-F1 (%) | Accuracy (%) |
-|---|---|---|
-| Majority class | 22.2 | 49.8 |
-| TF-IDF + logistic regression | 36.7 | 52.8 |
-| M0, seed 42 (lr 1e-4) | 46.5 | 55.6 |
-| M0, seeds 42–44 (mean ± s.d.) | 40.0 ± 5.7 | 52.5 ± 2.7 |
-
-Overfit-one-batch test passed (loss 1.150 → 0.0009, 100% accuracy). Cost: 4,386,307 parameters, 134.2 M MACs per pair,
-16.74 MiB saved weights, 5.9 ms median CPU latency (1 thread, batch 1; 25.5 ms including tokenisation),
-peak memory 865 MiB (771 MiB of which is PyTorch/Transformers after import).
-All pairs exceed 256 tokens (median 1,563), so the model sees only the start of each text.
-Figures: `figures/`; raw numbers: `results/m0_baseline.json`.
-
-The table above records the historical Assignment 2 validation results. Model choices were frozen before the completed Assignment 4 held-out evaluation; see assignment_4/results for the final measurements.
+AI tools (Claude and ChatGPT) assisted with planning, code debugging, figures and writing. Details are in each report's AI assistance section and in [`assignment_4/README.md`](assignment_4/README.md). All results come from the team's own runs.
 
 ## Links
 
-- Overleaf item 1 (proposal): https://www.overleaf.com/project/6acffdc25099ba40f22e8c46/share#865f4fc4739de1c88a160527c2ef36eae1981d1718b814aa
-- Overleaf item 2 (Milestones 1–2) :https://www.overleaf.com/project/6adb4cc6c2e32fc022083954/share#4ba0bb552aa2a65c09a740720fe7b8bfbae12b644691937f
+- Overleaf, Item 1 proposal: https://www.overleaf.com/project/6acffdc25099ba40f22e8c46/share#865f4fc4739de1c88a160527c2ef36eae1981d1718b814aa
+- Overleaf, Item 2 Milestones 1–2: https://www.overleaf.com/project/6adb4cc6c2e32fc022083954/share#4ba0bb552aa2a65c09a740720fe7b8bfbae12b644691937f
+- Team submission fork: https://github.com/RAWANKHOJAH/HireMind-DL

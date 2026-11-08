@@ -1,12 +1,9 @@
 # HireMind | CS4085 final research project
 Rawan Khojah and Hams Aljohani · Effat University
 
-[Team repository and public research record](https://github.com/RAWANKHOJAH/HireMind-DL) · [Earlier implementation and history](https://github.com/RAWANKHOJAH/HireMind-DL/tree/dc1cd00b4cd137aedfc9f019a71bfe614e6b70b4/assignment_3)
+Report: [HireMind_Final_Report.pdf](HireMind_Final_Report.pdf) · Item 3 materials: [../assignment_3](../assignment_3/) · Project overview: [../README.md](../README.md)
 
-The paper compares supervised BERT-Tiny, a distilled student and its quantized state for three-way CV–job compatibility. This publication includes the report, code, editable paper source and saved evidence. The authors deferred publication of the presentation, poster and their authoring sources. The research repository is the available portfolio link under Item 4. Confirm whether the general course requirement for a separate portfolio website applies before submitting.
-
-## Publication and submission status
-The nine held-out evaluations are complete. The report is published for team review. Individual contribution wording, compliance with the course AI-content limit, supervisor details, group naming and the portfolio requirement still need final author review before submission. The independent 90-pair training audit and validation error review were confirmed complete by the authors.
+The paper compares supervised BERT-Tiny (M0), a distilled student (M1) and its quantized state (M2) for three-way CV–job compatibility. This folder includes the report, evaluation code, editable paper source and saved evidence. The nine held-out evaluations are complete.
 
 ## Reproduce the published measurements from saved evidence
 From this directory, in a Python environment with pandas, NumPy and matplotlib:
@@ -31,7 +28,7 @@ These commands require no checkpoints, Drive account or GPU. The verifier checks
 ## Training and evaluation implementation
 Dataset: [resume-job-description-fit](https://huggingface.co/datasets/cnamuangtoun/resume-job-description-fit). The exact dataset and student revisions, hyperparameters, selection digests and test checksum appear in results/final_freeze.json. Use the pinned revision and frozen row IDs. Private CV text, private review sheets, tokens and weights are excluded.
 
-For the reference implementation and original training entry points, use the corrected SetupFixed notebook in the linked Assignment 3 commit. For a new, separately authorized reproduction use a fresh work directory, install item3_evidence/reproducibility/requirements.txt, compare tested_versions.json, then use the notebook's ordered setup, data preparation, M0, Teacher/cache, M1, quantization, benchmark and validation-reporting stages. Search uses seed 42; selected student settings repeat at 43 and 44. Training used a Tesla T4. CPU timing used an Intel Xeon at 2.00 GHz with one thread, batch one, sequence length 256, 30 warmups and 200 measured calls. Reproducing identical timings requires comparable hardware and software.
+For the reference implementation and original training entry points, use the corrected SetupFixed notebook in [../assignment_3/notebooks](../assignment_3/notebooks/). For a new, separately authorized reproduction use a fresh work directory, install item3_evidence/reproducibility/requirements.txt, compare tested_versions.json, then use the notebook's ordered setup, data preparation, M0, Teacher/cache, M1, quantization, benchmark and validation-reporting stages. Search uses seed 42; selected student settings repeat at 43 and 44. Training used a Tesla T4. CPU timing used an Intel Xeon at 2.00 GHz with one thread, batch one, sequence length 256, 30 warmups and 200 measured calls. Reproducing identical timings requires comparable hardware and software.
 
 For provenance, code/HireMind_A4_Final_Evaluation.ipynb contains the setup and definitions plus the successful resume implementation in the last cell, disabled by default. code/HireMind_A4_Resume.py preserves the historical Colab cell; it depends on the notebook namespace and the private existing freeze and weights. Do not execute it as a standalone script or rerun this cohort for tuning. The held-out table uses saved test predictions; CPU timings were copied from the matched benchmark, not remeasured using test pairs.
 
