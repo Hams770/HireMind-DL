@@ -51,3 +51,16 @@ jobs:
           print(f"M0 seed 42 validation macro-F1: reproduced on CPU {got['macro_f1']:.2f} | paper (T4 GPU) {ref.macro_f1:.2f}")
           print(f"M0 seed 42 validation accuracy: reproduced on CPU {got['accuracy']:.2f} | paper (T4 GPU) {ref.accuracy:.2f}")
           EOF
+      - name: 512-token path (Senior Project II) works and keeps the 256 results separate
+        env: { HIREMIND_MAX_LEN: "512" }
+        run: |
+          python scripts/prepare_data.py --no-test
+          python scripts/train.py --model M0 --lr 1e-4 --seed 42 --max-updates 20 --device cpu
+          python - <<'EOF'
+          import torch
+          t = torch.load("data/cache_L512/train_tokens.pt", weights_only=True)
+          assert t["input_ids"].shape[1] == 512, t["input_ids"].shape
+          import os; assert os.path.exists("runs_L512/M0_s42_lr0.0001/weights.pt")
+          assert os.path.exists("runs/M0_s42_lr0.0001/weights.pt")   # the 256 run is untouched
+          print("512 path OK:", tuple(t["input_ids"].shape))
+          EOF

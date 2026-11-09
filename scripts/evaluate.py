@@ -47,6 +47,7 @@ def main():
     ap.add_argument("--split", choices=["validation", "test"], required=True)
     ap.add_argument("--benchmark", action="store_true", help="also measure CPU latency (1 thread, batch 1)")
     ap.add_argument("--device", default="auto", help="device for M0/M1 scoring; M2 always runs on CPU")
+    ap.add_argument("--models", nargs="+", default=["M0", "M1", "M2"], choices=["M0", "M1", "M2"])
     a = ap.parse_args()
     cfg = load_config()
     ds = as_dataset(CACHE / f"{a.split}_tokens.pt")
@@ -54,7 +55,7 @@ def main():
     bench = json.loads((CACHE / "benchmark_inputs.json").read_text())
     pairs = [(r["resume_text"], r["job_description_text"]) for r in bench]
     rows, confusions = [], {}
-    for name in ["M0", "M1", "M2"]:
+    for name in a.models:
         for s in cfg["seeds"]:
             m = load(name, s, cfg)
             dev = "cpu" if name == "M2" else pick_device(a.device)
@@ -76,7 +77,7 @@ def main():
     summary = df.drop(columns="seed").groupby("model").agg(["mean", "std"])  # std = sample SD (ddof=1)
     summary.to_csv(OUT / f"{a.split}_summary.csv")
     print(summary.round(2).to_string())
-    if a.split == "test":
+    if a.split == "test" and cfg["tokenization"]["max_len"] == 256:
         paper = pd.read_csv(ROOT / "assignment_4/results/per_seed.csv").set_index(["model", "seed"])
         ours = df.set_index(["model", "seed"])
         cols = ["accuracy", "macro_f1", "good_fit_recall"]

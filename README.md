@@ -158,6 +158,7 @@ scripts/                  command-line pipeline: build_splits, prepare_data, tra
 configs/experiment.json   frozen protocol, search grids, selected hyperparameters
 splits/                   frozen train/validation/test row IDs and manifest (used by Items 2-4)
 data/README.md            dataset link and limitations (no raw data)
+senior2_512/              Senior Project II extension: retrain M0 with 512-token inputs (Colab notebook)
 requirements.txt          pinned package versions
 ```
 

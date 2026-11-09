@@ -4,11 +4,12 @@ from pathlib import Path
 
 import torch
 
-from . import ROOT
+from . import MAX_LEN, ROOT
 
-CACHE = ROOT / "data" / "cache"
-RUNS = ROOT / "runs"
-OUT = ROOT / "outputs"
+_SUFFIX = "" if MAX_LEN == 256 else f"_L{MAX_LEN}"
+CACHE = ROOT / "data" / f"cache{_SUFFIX}"
+RUNS = ROOT / f"runs{_SUFFIX}"
+OUT = ROOT / "outputs" / (f"L{MAX_LEN}" if _SUFFIX else "")
 
 
 def device(name="auto"):
