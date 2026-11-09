@@ -171,3 +171,4 @@ ChatGPT and Claude were used for code debugging and language editing. All experi
 - Overleaf, Item 2 Milestones 1–2: https://www.overleaf.com/project/6adb4cc6c2e32fc022083954/share#4ba0bb552aa2a65c09a740720fe7b8bfbae12b644691937f
 - **Project portfolio (this repository, linked in the final paper, slides and poster QR):** https://github.com/Hams770/HireMind-DL
 - Team fork with the same content (linked in the Item 3 paper): https://github.com/RAWANKHOJAH/HireMind-DL
+- HireMind platform (Senior Project II), where this classifier is used: https://github.com/Hams770/Senior-2
