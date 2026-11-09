@@ -24,4 +24,4 @@ python scripts/prepare_data.py && python scripts/evaluate.py --split test --mode
 | Results | `outputs/` | `outputs/L512/` |
 
 Choosing between 256 and 512 uses validation only; the test split is opened once, after the choice.
-Weights are not committed: send `HireMind_M0_L512.zip` (made by the last notebook cell) to the team.
+Weights are not stored in this repository; the last notebook cell saves them with the results as `HireMind_M0_L512.zip` on Google Drive.
